@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import 'qa/core_qa_screen.dart';
+import 'qa/shared_qa_screen.dart';
 
 void main() => runApp(const NativeQaApp());
 
@@ -137,6 +138,15 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
                   MaterialPageRoute<void>(builder: (_) => const CoreQaScreen()),
                 ),
                 child: const Text('Core validators and utilities'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SharedQaScreen(),
+                  ),
+                ),
+                child: const Text('Shared widgets gallery'),
               ),
               const SizedBox(height: 12),
               OutlinedButton(

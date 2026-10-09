@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T07
+NEXT_TASK: T08
 
 ## BUILD_CAPABILITY
 full
@@ -28,7 +28,7 @@ full
 - [x] T04 - Folder structure and lint rules
 - [x] T05 - Theme system (colors, text styles, light/dark)
 - [x] T06 - Constants, validators, exceptions, utils
-- [ ] T07 - Shared reusable widgets
+- [x] T07 - Shared reusable widgets
 - [ ] T08 - Local storage services (Hive + SharedPreferences)
 - [ ] T09 - Routing and screen placeholders
 - [ ] T10 - User model, auth datasource and repository (mock)
@@ -75,6 +75,8 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- lib/shared/widgets/: themed buttons/fields, loading/empty/error views, section headers, priority chips and snackbar/undo helper; test/shared covers controls and state actions in both themes.
+- tool/qa/shared_qa_screen.dart: native actual-touch gallery for reusable components.
 - lib/core/constants/: AppStrings UI copy, AppConstants settings/storage/validation/network values, MediaUrls declared sources.
 - lib/core/utils/: validators, disposable Debouncer and local-calendar/date/duration formatting.
 - lib/core/errors/: sealed friendly exceptions and transport/storage mapping.
@@ -127,6 +129,7 @@ full
 
 
 - Resident native QA Flutter run session: 17200, target tool/native_qa.dart. Use R to restart after source changes; current app displays production placeholder via QA button.
+
 
 
 

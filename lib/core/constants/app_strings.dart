@@ -52,6 +52,7 @@ abstract final class AppStrings {
   static const storageError = 'Could not access saved data. Please try again.';
   static const mediaError = 'Could not play this media. Please try again.';
   static const unknownError = 'Something went wrong. Please try again.';
+  static const errorTitle = 'Could not load this';
   static const loading = 'Loading…';
   static const retry = 'Retry';
   static const save = 'Save';

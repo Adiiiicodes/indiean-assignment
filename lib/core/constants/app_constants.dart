@@ -11,6 +11,7 @@ abstract final class AppConstants {
   static const searchDebounce = Duration(milliseconds: 400);
   static const authDelay = Duration(milliseconds: 600);
   static const splashDuration = Duration(milliseconds: 1200);
+  static const undoDuration = Duration(seconds: 6);
   static const defaultFocusMinutes = 25;
   static const focusMinutesOptions = [15, 25, 45];
   static const pageSize = 20;
