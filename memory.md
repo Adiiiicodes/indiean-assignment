@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T13
+NEXT_TASK: T14
 
 ## BUILD_CAPABILITY
 full
@@ -34,7 +34,7 @@ full
 - [x] T10 - User model, auth datasource and repository (mock)
 - [x] T11 - AuthCubit and states
 - [x] T12 - Splash screen with session redirect
-- [ ] T13 - Login screen
+- [x] T13 - Login screen
 - [ ] T14 - Sign-up screen
 - [ ] T15 - Auth flow integration check
 - [ ] T16 - Task model and priority enum
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- features/auth/view/login_screen.dart: validated keyboard-safe Login, demo autofill, loading/failure feedback and guarded stack-clearing navigation; test/features/auth/login_screen_test.dart.
 - features/auth/view/splash_screen.dart: animated themed brand, minimum display timer and session redirect; dedicated timing/disposal/widget checks.
 - features/auth/cubit/{auth_state,auth_cubit}.dart: shared app-level authentication transitions, friendly failures and lifecycle/duplicate guards; test/features/auth and native Cubit QA gallery.
 - lib/data/models/user_model.dart: immutable JSON/Equatable user; local/auth_local_datasource.dart: seeded accounts/hash/session; repositories/auth_repository.dart: validated injectable-delay auth operations.
@@ -137,7 +138,8 @@ full
 
 
 
-- T12 production APK cold-open verified saved demo session -> Home. Resident run ended after force-stop; emulator retains demo session. Re-launch QA to log out before native Login checks.
+- Resident native QA session18822 (tty=true), target tool/native_qa.dart, PID6056; actual Login demo succeeded and Back exited. Hot restart resets QA root; log out via Auth cubit before signup. Device size/font restored720x1280/font1.0.
+
 
 
 
