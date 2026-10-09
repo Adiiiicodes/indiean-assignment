@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,14 +20,24 @@ import 'package:focusdesk/features/profile/view/profile_screen.dart';
 import 'package:focusdesk/features/tasks/view/task_details_screen.dart';
 import 'package:focusdesk/features/tasks/view/task_form_screen.dart';
 import 'package:focusdesk/features/video/view/video_screen.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../helpers/app_dependencies.dart';
 
+class _FrozenAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
+
 Widget _host(GlobalKey<NavigatorState> navigatorKey) {
-  return MaterialApp(
-    navigatorKey: navigatorKey,
-    initialRoute: Routes.splash,
-    onGenerateRoute: AppRouter.onGenerateRoute,
+  final auth = _FrozenAuthCubit();
+  when(() => auth.state).thenReturn(const AuthInitial());
+  when(() => auth.checkSession()).thenAnswer((_) => Completer<void>().future);
+  addTearDown(auth.close);
+  return BlocProvider<AuthCubit>.value(
+    value: auth,
+    child: MaterialApp(
+      navigatorKey: navigatorKey,
+      initialRoute: Routes.splash,
+      onGenerateRoute: AppRouter.onGenerateRoute,
+    ),
   );
 }
 
@@ -74,6 +87,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(SplashScreen), findsOneWidget, reason: name);
     }
+    await tester.pumpWidget(const SizedBox.shrink());
     expect(tester.takeException(), isNull);
   });
 
@@ -97,6 +111,7 @@ void main() {
       ModalRoute.of(tester.element(find.byType(HomeScreen)))!.settings.name,
       Routes.home,
     );
+    await tester.pumpWidget(const SizedBox.shrink());
     expect(tester.takeException(), isNull);
   });
 
@@ -111,6 +126,7 @@ void main() {
     expect(find.byType(TaskDetailsScreen), findsNothing);
     expect(find.text(AppStrings.notFoundTitle), findsWidgets);
     expect(find.text(AppStrings.returnHome), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
     expect(tester.takeException(), isNull);
   });
 
@@ -119,13 +135,17 @@ void main() {
   ) async {
     final dependencies = await createTestDependencies();
     await tester.pumpWidget(FocusDeskApp(dependencies: dependencies));
-    await tester.pumpAndSettle();
 
     final splash = find.byType(SplashScreen);
     expect(splash, findsOneWidget);
     final auth = tester.element(splash).read<AuthCubit>();
-    expect(auth.state, const AuthInitial());
-    Navigator.of(tester.element(splash)).pushNamed(Routes.home);
+    await tester.pump(const Duration(milliseconds: 1200));
+    await tester.pumpAndSettle();
+    final login = find.byType(LoginScreen);
+    expect(login, findsOneWidget);
+    expect(auth.state, const Unauthenticated());
+    expect(tester.element(login).read<AuthCubit>(), same(auth));
+    Navigator.of(tester.element(login)).pushNamed(Routes.home);
     await tester.pumpAndSettle();
     expect(find.byType(HomeScreen), findsOneWidget);
     expect(

@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T12
+NEXT_TASK: T13
 
 ## BUILD_CAPABILITY
 full
@@ -33,7 +33,7 @@ full
 - [x] T09 - Routing and screen placeholders
 - [x] T10 - User model, auth datasource and repository (mock)
 - [x] T11 - AuthCubit and states
-- [ ] T12 - Splash screen with session redirect
+- [x] T12 - Splash screen with session redirect
 - [ ] T13 - Login screen
 - [ ] T14 - Sign-up screen
 - [ ] T15 - Auth flow integration check
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- features/auth/view/splash_screen.dart: animated themed brand, minimum display timer and session redirect; dedicated timing/disposal/widget checks.
 - features/auth/cubit/{auth_state,auth_cubit}.dart: shared app-level authentication transitions, friendly failures and lifecycle/duplicate guards; test/features/auth and native Cubit QA gallery.
 - lib/data/models/user_model.dart: immutable JSON/Equatable user; local/auth_local_datasource.dart: seeded accounts/hash/session; repositories/auth_repository.dart: validated injectable-delay auth operations.
 - test/data/{user_model,auth_repository}_test.dart and tool/qa/auth_repository_qa_screen.dart: model/auth tests and actual native account flow.
@@ -136,7 +137,8 @@ full
 
 
 
-- Resident native QA run session23735, target tool/native_qa.dart. QA initial route /native-qa resolves real splash / through AppRouter. Native app is logged out.
+- T12 production APK cold-open verified saved demo session -> Home. Resident run ended after force-stop; emulator retains demo session. Re-launch QA to log out before native Login checks.
+
 
 
 

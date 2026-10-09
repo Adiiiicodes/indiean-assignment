@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focusdesk/app.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
+import 'package:focusdesk/features/auth/view/login_screen.dart';
 
 import '../helpers/app_dependencies.dart';
 
@@ -17,7 +18,9 @@ void main() {
 
       final dependencies = await createTestDependencies();
       await tester.pumpWidget(FocusDeskApp(dependencies: dependencies));
+      await tester.pump(const Duration(milliseconds: 1200));
       await tester.pumpAndSettle();
+      expect(find.byType(LoginScreen), findsOneWidget);
 
       final theme = Theme.of(tester.element(find.byType(Scaffold)));
       expect(theme.brightness, brightness);
