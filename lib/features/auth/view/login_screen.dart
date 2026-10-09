@@ -206,9 +206,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   isLoading: loading,
                                 ),
                                 const SizedBox(height: 20),
-                                Center(
-                                  child: ActionChip(
-                                    avatar: const Icon(
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    key: const ValueKey('login-demo-account'),
+                                    icon: const Icon(
                                       Icons.auto_awesome_outlined,
                                     ),
                                     onPressed: loading ? null : _fillDemo,

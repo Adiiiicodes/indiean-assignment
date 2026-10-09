@@ -158,7 +158,7 @@ void main() {
 
       await _tapVisible(
         tester,
-        find.widgetWithText(ActionChip, AppStrings.useDemo),
+        find.byKey(const ValueKey('login-demo-account')),
       );
       await _tapVisible(tester, _button(AppStrings.login));
       _expectRoot(tester, find.byType(HomeScreen));

@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T44
+NEXT_TASK: T45
 
 ## BUILD_CAPABILITY
 full
@@ -65,7 +65,7 @@ full
 - [x] T41 - TimerCubit
 - [x] T42 - Focus Session screen UI
 - [x] T43 - Stats card on Home and Profile
-- [ ] T44 - Responsive and accessibility audit
+- [x] T44 - Responsive and accessibility audit
 - [ ] T45 - Motion polish, app icon and native splash
 - [ ] T46 - Full app smoke test
 - [ ] T47 - Release APK build and verification
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- T44: responsive_test.dart exercises ten populated screens across five sizes and two text scales (100 cases), with scroll and full demo-label glyph containment assertions. Accessibility tests inspect actual Login/Music/Details semantics and tap guidelines. Login demo action is a wrapping full-width OutlinedButton, preserving autofill and busy guards.
 - StatsCubit/State/Card: serialized generation-safe snapshots, four accessible responsive totals, loading/friendly Retry/zero message. App task/auth bindings plus Tasks/Profile activation, Detailsreturn and accepted Focus revision refresh shared state.7 unit+7 widget+1 wholeapp stats journey; FrozenStats helper keeps unrelated standalone fixtures deterministic.
 - FocusScreen owns Timer with persisted durations, responsive Countdown and confirmed reset/leave. FocusMusicPlayer serializes cancellation-aware shared Audio controls; FocusCompletionDialog waits accepted save and verifies Yes task update/Retry.11 full widget flows +2 bad-payload router cases. Native QA shared Audio lifecycle wrapper and production/isolated3sec screen probe.
 - TimerCubit/TimerState: injectable periodic ticker/clock/duration converter,25/15/45 configuration, real elapsed/fractional segment accounting, pause/resume/reset/finish, completed/partial session logging with pending retry-safe UUID and success revision.22 unit/bloc +4 realHive timer tests. TimerQaScreen owns real clock/Cubit for production durations and isolated3second completion probe, readback/coldrestore/cleanup.
@@ -139,6 +140,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T44 actual small-screen large-text audit found horizontal demo-chip text clipping without a RenderFlex exception; replaced it with a wrapping full-width button and added glyph-bound checks. All existing icon-only controls already supply tooltips; three actual-screen semantics/tap-target regressions preserve them. Native remote load initially failed transiently, actual Retry recovered06:12/play-pause02; no network reliability claim is inferred from fake tests.
 - T43 stats are app-scoped; only successful task loads or actual list changes refresh, query/filter do not. Accepted Timer revision refreshes optional Stats provider (standalone Focus tests/QA can omit it); Tasks/Profile tab activation and Detailsreturn also reload. Profile confirmedclear resets read generation and always refreshes afterward, auth logout/identitychange reset; currentAuth guard blocks late task success from prior session. Repository semantics retain T40 local-day/partial/flooring/completion approximation.
 - T41 accumulates fractional active durations across pause/resume, uses elapsed clock rather than tick count, clamps delayed overshoot and freezes backwards-clock highwater. Natural completion always saves; early finish saves only actualSeconds>10. finishEarly true means accepted finish, not necessarily a persisted short partial; lastSession+revision signals accepted save. Reset discards current elapsed time without logging. Failed save retains exact frozen UUID; new start/reset/config blocked until Retry accepted. close cancels ticker/closes emissions immediately and waits an existing save, without inventing partials. T42 completion dialog must await lastSession.completed and successful revision; shared music needs race-safe cancellation of delayed init/autoplay. QA3sec conversion is isolated from production default minutes*60.
 - T40 attributes a session to its local startedAt day, including sessions crossing midnight; partials count toward sessions and minutes. Sum actual seconds before flooring minutes. Streak uses unique dates with positive actual seconds, anchored today or yesterday, calendar predecessors across DST. TaskModel has no completedAt, so tasksCompletedToday uses currently done tasks updatedAt day; document this approximation. Identical session-ID retries are idempotent, differing duplicate IDs fail friendly storage errors. Reads await previous saves; production Profile clear uses shared FocusRepository queue to prevent pending save resurrection.
@@ -202,8 +204,8 @@ full
 
 
 
-- Production APK PID7151, Tasks/sessionstats0 after actual confirmed Profileclear and coldrestart; Focus Tester/System25. No resident Flutter tty. Final184-file format/analyze/692tests and production debug37.6s passed. Device720x1280/font1.0/OSlight/userrotationfree0/ignoreOrientationRequestfalse. Actual tab labels include newline Tab n of m.
-- 04:00IST10Oct checkpoint:42/52 committed,10remaining;2verifiedcommits/30min. T42full677tests/timer/music/completion/coldrestore passed; finalproduction small-screen checks pending. ETA2.5–4h/completion06:30–08:00IST; next checkpoint04:30IST.
+- Production APK PID9166, one pending long-title audit task/zero sessions, Focus Tester/System25. Final187-file format/analyze/795tests and debug34.4s passed. Actual small320/font1.3/Dark, tablet800/font1.3 and landscape891x411/keyboard/scroll passed. Restored720x1280/font1/OSlight/free0/ignorefalse; filtered runtime clean.
+- 04:30IST10Oct checkpoint:44/52 committed,8remaining;2verifiedcommits/30min. T44 final795tests/native responsive gates passed, finishing commit. ETA2–3.5h/completion06:30–08:00IST; next checkpoint05:00IST. After T44commit45/52done7remain.
 
 
 

@@ -223,8 +223,8 @@ void main() {
     }
     expect(
       tester
-          .widget<ActionChip>(
-            find.widgetWithText(ActionChip, AppStrings.useDemo),
+          .widget<OutlinedButton>(
+            find.byKey(const ValueKey('login-demo-account')),
           )
           .onPressed,
       isNull,
@@ -246,7 +246,7 @@ void main() {
   ) async {
     final cubit = _LoginCubit();
     await _pumpLogin(tester, cubit);
-    await _tapVisible(tester, find.byType(ActionChip));
+    await _tapVisible(tester, find.byKey(const ValueKey('login-demo-account')));
     final email = tester.widget<EditableText>(
       find.descendant(
         of: _field(AppStrings.email),
