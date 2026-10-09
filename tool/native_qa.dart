@@ -23,6 +23,7 @@ import 'qa/auth_repository_qa_screen.dart';
 import 'qa/auth_cubit_qa_screen.dart';
 import 'qa/task_model_qa_screen.dart';
 import 'qa/task_repository_qa_screen.dart';
+import 'qa/task_cubit_qa_screen.dart';
 
 Future<void> main() async {
   try {
@@ -163,6 +164,17 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => TaskCubitQaScreen(
+                      repository: widget.dependencies.tasks,
+                    ),
+                  ),
+                ),
+                child: const Text('Task cubit'),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
