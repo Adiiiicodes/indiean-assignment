@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T33
+NEXT_TASK: T34
 
 ## BUILD_CAPABILITY
 full
@@ -54,7 +54,7 @@ full
 - [x] T30 - Track model and AudioPlayerService (just_audio wrapper)
 - [x] T31 - AudioCubit
 - [x] T32 - Music player screen UI
-- [ ] T33 - Audio states, errors and Android config
+- [x] T33 - Audio states, errors and Android config
 - [ ] T34 - Audio integration test with fake service
 - [ ] T35 - Video player screen (Chewie, network)
 - [ ] T36 - Video states: buffering, completion/replay, error/retry, time labels
@@ -75,6 +75,8 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- features/audio/widgets/audio_lifecycle_binding.dart: observer owns lazy app-wide provider without creating unused decoder. AudioCubit.setAppActive serializes pending work before pause, cancels background play/repeat intent and delayed decoder recovery, retains completed status. audio_lifecycle_test.dart10 tests; Music19 UI tests include spinner/disabled state, first-fold friendly Retry and explicit Replay; tool/qa/music_states_qa_screen.dart real native local/missing-file/remote Music scenarios.
+
 - features/audio/view/music_screen.dart: lazy first visit, retained shared player, stream-safe seek preview/release, controls/repeat and3 selectable tracks; responsive artwork Row/Column. widgets/track_artwork.dart and track_list_tile.dart: themed gradients/pulse/equalizer honor active/TickerMode/reduced motion. music_screen_test.dart13 cases; shell lazy-init/revisit regression.
 
 - features/audio/cubit/audio_cubit.dart/audio_state.dart: shared lazy stream-derived player controls,3sPrevious, repeat/retry/completed-reset/stop/ownedcleanup. AppDependencies.audio/audioPlayerFactory and app-level lazy provider;25Cubit/state+2scope tests. test/helpers/fake_audio_player_service.dart reusable controllable streams/gates/failures/callrecords; tool/qa/audio_cubit_qa_screen.dart real native control/completion/error/retry probe.
@@ -124,6 +126,9 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T33 foreground-only audio pauses for every non-resumed lifecycle state, including while a decoder action is pending. Resuming never starts playback. A completed-status latch suppresses late paused/ready announcements until an accepted user action/load/stop/failure. Provider teardown disposes owned decoder/listeners; abrupt process kill relies on OS cleanup because Flutter cannot promise a final lifecycle callback. HTTPS/asset playback needs existing INTERNET permission; no HTTP/header/cache/stream proxy features, so cleartext remains false.
+- Music error state presents friendly panel/Retry first and retains metadata/disabled controls below; large artwork is omitted on error so recovery is visible immediately. Completed has explicit Replay playlist button; buffering/loading spinner semantics are distinct and all media interactions disabled.
+
 - T32 hidden Music returns an empty body until first visit so app-scope lazy decoder remains lazy; selected tab propagates active to artwork/equalizer. Scrub previews use captured track identity and seek once on release. Compact vertical spacing fits all controls above navigation on360x640dp;320dp/large-text remains scrollable. Current Flutter TickerMode.valuesOf replaces deprecated of.
 - Native debugger connections now detach on reload despite healthy app/ADB. Use explicit debug APK build/install/force-stop/start for dependable final-source native QA. Screenshot transfers retry up to3 bounded pulls after screencap and require a nonempty file; no image alteration.
 
@@ -172,7 +177,7 @@ full
 
 
 
-- Native production APK PID24345; no resident Flutter tty. Debug APK build/install/start workflow verified. Device720x1280/font1.0/light, WiFi/data enabled; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
+- Native production APK PID26318; no resident Flutter tty. Debug APK build/install/start workflow verified. Device720x1280/font1.0/light, WiFi/data enabled; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
 - 01:30IST10Oct checkpoint:32/52 committed,20remaining;3verifiedcommits/30min; ETA5–7h/completion06:30–08:30IST. Next checkpoint02:00IST.
 
 

@@ -11,6 +11,7 @@ import 'package:focusdesk/features/audio/cubit/audio_state.dart';
 import 'package:focusdesk/features/audio/widgets/track_artwork.dart';
 import 'package:focusdesk/features/audio/widgets/track_list_tile.dart';
 import 'package:focusdesk/shared/widgets/error_view.dart';
+import 'package:focusdesk/shared/widgets/app_button.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
 
 class MusicScreen extends StatefulWidget {
@@ -126,6 +127,15 @@ class _MusicScreenState extends State<MusicScreen> {
         : AppStrings.play;
     return Column(
       children: [
+        if (state.status == AppPlayerStatus.completed) ...[
+          AppButton(
+            key: const ValueKey('audio-replay-playlist'),
+            label: AppStrings.replayPlaylist,
+            icon: Icons.replay_rounded,
+            onPressed: enabled ? () => unawaited(cubit.play()) : null,
+          ),
+          const SizedBox(height: 8),
+        ],
         Slider(
           key: const ValueKey('audio-seek'),
           min: 0,
@@ -254,7 +264,12 @@ class _MusicScreenState extends State<MusicScreen> {
           active: widget.active,
         ),
         if (_isLoading(state))
-          const CircularProgressIndicator(semanticsLabel: AppStrings.loading),
+          CircularProgressIndicator(
+            key: const ValueKey('audio-loading-overlay'),
+            semanticsLabel: state.status == AppPlayerStatus.buffering
+                ? AppStrings.buffering
+                : AppStrings.loading,
+          ),
       ],
     ),
   );
@@ -280,14 +295,14 @@ class _MusicScreenState extends State<MusicScreen> {
         final controls = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _metadata(context, track),
-            const SizedBox(height: 4),
-            _transport(context, state),
             if (state.status == AppPlayerStatus.error)
               ErrorView(
                 message: state.errorMessage ?? AppStrings.mediaError,
                 onRetry: () => unawaited(context.read<AudioCubit>().retry()),
               ),
+            _metadata(context, track),
+            const SizedBox(height: 4),
+            _transport(context, state),
             const SizedBox(height: 24),
             _tracks(context, state),
           ],
@@ -314,7 +329,9 @@ class _MusicScreenState extends State<MusicScreen> {
                     ),
                     const SizedBox(height: 8),
                   ],
-                  if (wide)
+                  if (state.status == AppPlayerStatus.error)
+                    controls
+                  else if (wide)
                     Row(
                       key: const ValueKey('audio-wide-layout'),
                       crossAxisAlignment: CrossAxisAlignment.start,

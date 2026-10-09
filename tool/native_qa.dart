@@ -35,6 +35,7 @@ import 'qa/suggested_cubit_qa_screen.dart';
 import 'qa/media_assets_qa_screen.dart';
 import 'qa/audio_service_qa_screen.dart';
 import 'qa/audio_cubit_qa_screen.dart';
+import 'qa/music_states_qa_screen.dart';
 
 Future<void> main() async {
   try {
@@ -232,6 +233,39 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const MusicStatesQaScreen(
+                      scenario: MusicQaScenario.local,
+                    ),
+                  ),
+                ),
+                child: const Text('Music local tracks'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const MusicStatesQaScreen(
+                      scenario: MusicQaScenario.decoderFailureThenRetry,
+                    ),
+                  ),
+                ),
+                child: const Text('Music decoder failure then Retry'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const MusicStatesQaScreen(
+                      scenario: MusicQaScenario.remote,
+                    ),
+                  ),
+                ),
+                child: const Text('Music remote tracks'),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(

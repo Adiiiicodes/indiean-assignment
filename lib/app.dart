@@ -10,7 +10,7 @@ import 'package:focusdesk/data/repositories/auth_repository.dart';
 import 'package:focusdesk/data/repositories/task_repository.dart';
 import 'package:focusdesk/data/repositories/suggested_repository.dart';
 import 'package:focusdesk/data/repositories/audio_repository.dart';
-import 'package:focusdesk/features/audio/cubit/audio_cubit.dart';
+import 'package:focusdesk/features/audio/widgets/audio_lifecycle_binding.dart';
 import 'package:focusdesk/features/suggested/cubit/suggested_cubit.dart';
 import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:focusdesk/features/auth/cubit/auth_state.dart';
@@ -43,12 +43,6 @@ class FocusDeskApp extends StatelessWidget {
         providers: [
           BlocProvider<AuthCubit>(create: (_) => AuthCubit(dependencies.auth)),
           BlocProvider<TaskCubit>(create: (_) => TaskCubit(dependencies.tasks)),
-          BlocProvider<AudioCubit>(
-            create: (_) => AudioCubit(
-              dependencies.audio,
-              dependencies.audioPlayerFactory(),
-            ),
-          ),
           BlocProvider<SuggestedCubit>(
             create: (context) => SuggestedCubit(
               dependencies.suggested,
@@ -56,16 +50,20 @@ class FocusDeskApp extends StatelessWidget {
             ),
           ),
         ],
-        child: _TaskSessionBinding(
-          child: MaterialApp(
-            debugShowCheckedModeBanner: false,
-            title: AppStrings.appName,
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: ThemeMode.system,
-            builder: AppTheme.systemUiBuilder,
-            initialRoute: Routes.splash,
-            onGenerateRoute: AppRouter.onGenerateRoute,
+        child: AudioLifecycleBinding(
+          repository: dependencies.audio,
+          serviceFactory: dependencies.audioPlayerFactory,
+          child: _TaskSessionBinding(
+            child: MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: AppStrings.appName,
+              theme: AppTheme.light,
+              darkTheme: AppTheme.dark,
+              themeMode: ThemeMode.system,
+              builder: AppTheme.systemUiBuilder,
+              initialRoute: Routes.splash,
+              onGenerateRoute: AppRouter.onGenerateRoute,
+            ),
           ),
         ),
       ),

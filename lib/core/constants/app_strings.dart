@@ -127,6 +127,7 @@ abstract final class AppStrings {
   static const nextTrack = 'Next track';
   static const seek = 'Seek';
   static const replay = 'Replay';
+  static const replayPlaylist = 'Replay playlist';
   static const fullscreen = 'Fullscreen';
   static const exitFullscreen = 'Exit fullscreen';
   static const buffering = 'Buffering…';

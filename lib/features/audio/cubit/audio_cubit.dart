@@ -23,6 +23,10 @@ class AudioCubit extends Cubit<AudioState> {
   Future<void>? _actionFuture;
   Future<void>? _completionFuture;
   Future<void>? _closeFuture;
+  Future<void>? _lifecyclePauseFuture;
+  bool _appActive = true;
+  bool _pauseAgain = false;
+  bool _retainCompleted = false;
   bool _initialized = false;
   bool _loading = false;
   bool _completing = false;
@@ -69,6 +73,15 @@ class AudioCubit extends Cubit<AudioState> {
 
   void _onStatus(AppPlayerStatus status) {
     if (!_live || (_loading && status == AppPlayerStatus.idle)) return;
+    if (_retainCompleted &&
+        (status == AppPlayerStatus.paused || status == AppPlayerStatus.ready)) {
+      return;
+    }
+    if (status == AppPlayerStatus.playing && !_appActive) {
+      _pauseAgain = true;
+      unawaited(setAppActive(false));
+      return;
+    }
     if (status == AppPlayerStatus.error) {
       _failure(const MediaException());
       return;
@@ -88,6 +101,7 @@ class AudioCubit extends Cubit<AudioState> {
 
   void _failure(Object error) {
     if (!_live) return;
+    _retainCompleted = false;
     _wantsPlaying = false;
     emit(
       state.copyWith(
@@ -106,6 +120,7 @@ class AudioCubit extends Cubit<AudioState> {
 
   Future<void> _load({bool retry = false}) async {
     if (!_live) return;
+    _retainCompleted = false;
     final generation = ++_generation;
     _loading = true;
     _wantsPlaying = false;
@@ -147,9 +162,15 @@ class AudioCubit extends Cubit<AudioState> {
   }
 
   Future<void> _run(Future<void> Function() action) {
-    if (!_live || state.isBusy || _completing || _stopping) {
+    if (!_live ||
+        !_appActive ||
+        _lifecyclePauseFuture != null ||
+        state.isBusy ||
+        _completing ||
+        _stopping) {
       return Future.value();
     }
+    _retainCompleted = false;
     return _actionFuture = _perform(action)
         .whenComplete(() => _actionFuture = null);
   }
@@ -169,9 +190,11 @@ class AudioCubit extends Cubit<AudioState> {
       state.isPlaying || _wantsPlaying ? pause() : play();
 
   Future<void> play() async {
-    if (!_live || _stopping) return;
+    if (!_live || !_appActive || _lifecyclePauseFuture != null || _stopping) {
+      return;
+    }
     if (!_initialized) await init();
-    if (!_live || state.status == AppPlayerStatus.error) return;
+    if (!_live || !_appActive || state.status == AppPlayerStatus.error) return;
     await _run(() async {
       _wantsPlaying = true;
       await _service.play();
@@ -233,7 +256,7 @@ class AudioCubit extends Cubit<AudioState> {
       await _service.pause();
       await _service.skipTo(0);
       if (!_live) return;
-      if (state.repeat && !_stopping) {
+      if (state.repeat && !_stopping && _appActive) {
         _wantsPlaying = true;
         await _service.play();
         if (_live) emit(state.copyWith(status: AppPlayerStatus.playing));
@@ -256,6 +279,7 @@ class AudioCubit extends Cubit<AudioState> {
 
   Future<void> stop() async {
     if (!_live || _stopping) return;
+    _retainCompleted = false;
     _stopping = true;
     try {
       await _loadFuture;
@@ -279,6 +303,47 @@ class AudioCubit extends Cubit<AudioState> {
     } finally {
       _stopping = false;
     }
+  }
+
+  /// Backgrounding cancels play intent and waits for decoder work before pause.
+  /// Returning to the foreground enables user actions without starting playback.
+  Future<void> setAppActive(bool active) {
+    _appActive = active;
+    if (active || !_live) return Future.value();
+    _wantsPlaying = false;
+    return _lifecyclePauseFuture ??= _pauseForLifecycle().whenComplete(
+      () => _lifecyclePauseFuture = null,
+    );
+  }
+
+  Future<void> _pauseForLifecycle() async {
+    await _loadFuture;
+    await _actionFuture;
+    await _completionFuture;
+    if (!_live || !_initialized) return;
+    do {
+      _pauseAgain = false;
+      final completed = state.status == AppPlayerStatus.completed;
+      if (completed) _retainCompleted = true;
+      emit(state.copyWith(isBusy: true));
+      try {
+        _wantsPlaying = false;
+        await _service.pause();
+        if (_live && state.status != AppPlayerStatus.error) {
+          emit(
+            state.copyWith(
+              status: completed
+                  ? AppPlayerStatus.completed
+                  : AppPlayerStatus.paused,
+            ),
+          );
+        }
+      } catch (error) {
+        _failure(error);
+      } finally {
+        if (_live) emit(state.copyWith(isBusy: false));
+      }
+    } while (_live && _pauseAgain);
   }
 
   @override

@@ -14,6 +14,7 @@ import 'package:focusdesk/features/audio/view/music_screen.dart';
 import 'package:focusdesk/features/audio/widgets/track_artwork.dart';
 import 'package:focusdesk/features/audio/widgets/track_list_tile.dart';
 import 'package:focusdesk/shared/widgets/app_button.dart';
+import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
 
 const _repository = AudioRepository();
@@ -35,6 +36,8 @@ class _AudioCubit extends Cubit<AudioState> implements AudioCubit {
   int previousCalls = 0;
   int repeatCalls = 0;
   int retryCalls = 0;
+  int playCalls = 0;
+  AudioState? retryResult;
   final selected = <int>[];
   final seeks = <Duration>[];
   Completer<void>? pendingToggle;
@@ -106,12 +109,18 @@ class _AudioCubit extends Cubit<AudioState> implements AudioCubit {
   @override
   Future<void> retry() async {
     retryCalls++;
-    emit(state.copyWith(status: AppPlayerStatus.paused, clearError: true));
+    emit(
+      retryResult ??
+          state.copyWith(status: AppPlayerStatus.paused, clearError: true),
+    );
   }
 
   @override
-  Future<void> play() async =>
-      emit(state.copyWith(status: AppPlayerStatus.playing));
+  Future<void> play() async {
+    playCalls++;
+    emit(state.copyWith(status: AppPlayerStatus.playing));
+  }
+
   @override
   Future<void> pause() async =>
       emit(state.copyWith(status: AppPlayerStatus.paused));
@@ -119,6 +128,13 @@ class _AudioCubit extends Cubit<AudioState> implements AudioCubit {
   Future<void> stop() async => emit(
     state.copyWith(status: AppPlayerStatus.paused, position: Duration.zero),
   );
+
+  @override
+  Future<void> setAppActive(bool active) async {
+    if (!active && state.isPlaying) {
+      await pause();
+    }
+  }
 }
 
 Finder _control(String suffix) => find.byKey(ValueKey('audio-$suffix'));
@@ -137,6 +153,21 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
   }
   await tester.tap(finder);
   await _frames(tester);
+}
+
+void _expectPlaybackDisabled(WidgetTester tester) {
+  for (final suffix in ['previous', 'play-pause', 'next', 'repeat']) {
+    expect(tester.widget<IconButton>(_control(suffix)).onPressed, isNull);
+  }
+  final slider = tester.widget<Slider>(_seek());
+  expect(slider.onChangeStart, isNull);
+  expect(slider.onChanged, isNull);
+  expect(slider.onChangeEnd, isNull);
+  for (final tile in tester.widgetList<TrackListTile>(
+    find.byType(TrackListTile),
+  )) {
+    expect(tile.onTap, isNull);
+  }
 }
 
 Future<void> _pumpScreen(
@@ -327,6 +358,54 @@ void main() {
     },
   );
 
+  for (final status in [AppPlayerStatus.loading, AppPlayerStatus.buffering]) {
+    testWidgets(
+      '${status.name} overlays artwork and disables all playback actions',
+      (tester) async {
+        final cubit = _AudioCubit(_ready(status: status));
+        await _pumpScreen(tester, cubit);
+        final artworkStack = find.byWidgetPredicate(
+          (widget) =>
+              widget is Stack &&
+              widget.children.any((child) => child is TrackArtwork),
+        );
+        expect(artworkStack, findsOneWidget);
+        expect(
+          find.descendant(
+            of: artworkStack,
+            matching: find.byType(CircularProgressIndicator),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          tester
+              .widget<CircularProgressIndicator>(_control('loading-overlay'))
+              .semanticsLabel,
+          status == AppPlayerStatus.buffering
+              ? AppStrings.buffering
+              : AppStrings.loading,
+        );
+        expect(find.text(_repository.focusTracks[1].title), findsWidgets);
+        expect(find.byType(TrackListTile), findsNWidgets(3));
+        _expectPlaybackDisabled(tester);
+        await _tap(tester, _control('play-pause'));
+        await _tap(tester, _track(_repository.focusTracks.first.id));
+        expect(cubit.toggleCalls, 0);
+        expect(cubit.selected, isEmpty);
+        expect(cubit.seeks, isEmpty);
+        cubit.emit(cubit.state.copyWith(status: AppPlayerStatus.ready));
+        await _frames(tester);
+        expect(_control('loading-overlay'), findsNothing);
+        expect(
+          tester.widget<IconButton>(_control('play-pause')).onPressed,
+          isNotNull,
+        );
+        expect(tester.widget<Slider>(_seek()).onChanged, isNotNull);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
   testWidgets(
     'error retains its track and actual Retry restores a paused player',
     (tester) async {
@@ -339,6 +418,8 @@ void main() {
       await _pumpScreen(tester, cubit);
       expect(find.text(AppStrings.mediaError), findsWidgets);
       expect(find.text(_repository.focusTracks[1].title), findsWidgets);
+      expect(find.byType(ErrorView), findsOneWidget);
+      _expectPlaybackDisabled(tester);
       final retry = find.byWidgetPredicate(
         (widget) => widget is AppButton && widget.label == AppStrings.retry,
       );
@@ -347,8 +428,102 @@ void main() {
       expect(cubit.state.status, AppPlayerStatus.paused);
       expect(find.text(AppStrings.mediaError), findsNothing);
       expect(find.byTooltip(AppStrings.play), findsOneWidget);
+      expect(tester.widget<Slider>(_seek()).onChanged, isNotNull);
+      expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('retained error Retry is visible on the first phone fold', (
+    tester,
+  ) async {
+    final cubit = _AudioCubit(
+      _ready().copyWith(
+        status: AppPlayerStatus.error,
+        errorMessage: AppStrings.mediaError,
+      ),
+    );
+    await _pumpScreen(
+      tester,
+      cubit,
+      size: const Size(360, 640),
+      textScale: 1.3,
+    );
+    expect(find.text(AppStrings.mediaError).hitTestable(), findsOneWidget);
+    final retry = find
+        .widgetWithText(AppButton, AppStrings.retry)
+        .hitTestable();
+    expect(retry, findsOneWidget);
+    expect(find.text(_repository.focusTracks[1].title), findsWidgets);
+    await tester.tap(retry);
+    await _frames(tester);
+    expect(cubit.retryCalls, 1);
+    expect(cubit.state.status, AppPlayerStatus.paused);
+    expect(find.text(AppStrings.mediaError), findsNothing);
+    expect(find.text(_repository.focusTracks[1].title), findsWidgets);
+    expect(find.byTooltip(AppStrings.play), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('initial media error offers friendly Retry before tracks exist', (
+    tester,
+  ) async {
+    final cubit = _AudioCubit(
+      AudioState(
+        status: AppPlayerStatus.error,
+        errorMessage: AppStrings.mediaError,
+      ),
+    )..retryResult = _ready(status: AppPlayerStatus.paused);
+    await _pumpScreen(tester, cubit);
+    expect(find.byType(ErrorView), findsOneWidget);
+    expect(find.text(AppStrings.mediaError), findsOneWidget);
+    expect(find.byType(TrackArtwork), findsNothing);
+    expect(find.byType(LoadingView), findsNothing);
+    expect(find.byType(Slider), findsNothing);
+    await _tap(tester, find.widgetWithText(AppButton, AppStrings.retry));
+    expect(cubit.retryCalls, 1);
+    expect(cubit.state.status, AppPlayerStatus.paused);
+    expect(find.byType(ErrorView), findsNothing);
+    expect(find.text(AppStrings.mediaError), findsNothing);
+    expect(find.text(_repository.focusTracks[1].title), findsWidgets);
+    expect(find.byTooltip(AppStrings.play), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('completed playlist exposes explicit Replay and calls play', (
+    tester,
+  ) async {
+    final cubit = _AudioCubit(
+      _ready(status: AppPlayerStatus.completed)
+          .copyWith(currentIndex: 0, position: Duration.zero),
+    );
+    await _pumpScreen(tester, cubit);
+    expect(find.text(AppStrings.replayPlaylist), findsOneWidget);
+    expect(find.text(_repository.focusTracks.first.title), findsWidgets);
+    await _tap(tester, _control('replay-playlist'));
+    expect(cubit.playCalls, 1);
+    expect(cubit.toggleCalls, 0);
+    expect(cubit.state.status, AppPlayerStatus.playing);
+    expect(_control('replay-playlist'), findsNothing);
+    expect(find.byTooltip(AppStrings.pause), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('completion reset disables Replay until it is ready', (
+    tester,
+  ) async {
+    final cubit = _AudioCubit(
+      _ready(status: AppPlayerStatus.completed).copyWith(isBusy: true),
+    );
+    await _pumpScreen(tester, cubit);
+    expect(
+      tester.widget<AppButton>(_control('replay-playlist')).onPressed,
+      isNull,
+    );
+    await _tap(tester, _control('replay-playlist'));
+    expect(cubit.playCalls, 0);
+    _expectPlaybackDisabled(tester);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('inactive embedded screen initializes only when activated', (
     tester,
