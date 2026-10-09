@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T34
+NEXT_TASK: T35
 
 ## BUILD_CAPABILITY
 full
@@ -55,7 +55,7 @@ full
 - [x] T31 - AudioCubit
 - [x] T32 - Music player screen UI
 - [x] T33 - Audio states, errors and Android config
-- [ ] T34 - Audio integration test with fake service
+- [x] T34 - Audio integration test with fake service
 - [ ] T35 - Video player screen (Chewie, network)
 - [ ] T36 - Video states: buffering, completion/replay, error/retry, time labels
 - [ ] T37 - Fullscreen and orientation handling
@@ -75,6 +75,8 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- test/features/audio/music_player_flow_test.dart: full FocusDeskApp/router/Home/auth/lifecycle/real AudioCubit journey with fake decoder only; actual taps/seek/next/previous/restart/completion/Replay/error/Retry/route retention/background/disposal. App player factory stays lazy and single.
+
 - features/audio/widgets/audio_lifecycle_binding.dart: observer owns lazy app-wide provider without creating unused decoder. AudioCubit.setAppActive serializes pending work before pause, cancels background play/repeat intent and delayed decoder recovery, retains completed status. audio_lifecycle_test.dart10 tests; Music19 UI tests include spinner/disabled state, first-fold friendly Retry and explicit Replay; tool/qa/music_states_qa_screen.dart real native local/missing-file/remote Music scenarios.
 
 - features/audio/view/music_screen.dart: lazy first visit, retained shared player, stream-safe seek preview/release, controls/repeat and3 selectable tracks; responsive artwork Row/Column. widgets/track_artwork.dart and track_list_tile.dart: themed gradients/pulse/equalizer honor active/TickerMode/reduced motion. music_screen_test.dart13 cases; shell lazy-init/revisit regression.
@@ -126,6 +128,8 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- Focus screen must reuse context.read<AudioCubit>() from app-owned AudioLifecycleBinding. init is idempotent; route changes retain the selected playlist/position. UI calls Cubit controls; Cubit owns streamed app statuses and service; service owns just_audio decoder/fallback/recovery. Focus routes never dispose this shared decoder; explicit pause/stop for session actions, app provider closes it. Test substitute only AudioPlayerService via AppDependencies.audioPlayerFactory.
+
 - T33 foreground-only audio pauses for every non-resumed lifecycle state, including while a decoder action is pending. Resuming never starts playback. A completed-status latch suppresses late paused/ready announcements until an accepted user action/load/stop/failure. Provider teardown disposes owned decoder/listeners; abrupt process kill relies on OS cleanup because Flutter cannot promise a final lifecycle callback. HTTPS/asset playback needs existing INTERNET permission; no HTTP/header/cache/stream proxy features, so cleartext remains false.
 - Music error state presents friendly panel/Retry first and retains metadata/disabled controls below; large artwork is omitted on error so recovery is visible immediately. Completed has explicit Replay playlist button; buffering/loading spinner semantics are distinct and all media interactions disabled.
 
@@ -177,8 +181,8 @@ full
 
 
 
-- Native production APK PID26318; no resident Flutter tty. Debug APK build/install/start workflow verified. Device720x1280/font1.0/light, WiFi/data enabled; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
-- 01:30IST10Oct checkpoint:32/52 committed,20remaining;3verifiedcommits/30min; ETA5–7h/completion06:30–08:30IST. Next checkpoint02:00IST.
+- Native QA APK PID26766 (launcher after T34 controls/completion/error/Retry); no resident Flutter tty. Debug APK build/install/start workflow verified. Device720x1280/font1.0/light, WiFi/data enabled; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
+- 02:00IST10Oct checkpoint:34/52 committed,18remaining;2verifiedcommits/30min; ETA5–7h/completion07:00–09:00IST. Next checkpoint02:30IST.
 
 
 
