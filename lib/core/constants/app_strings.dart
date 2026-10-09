@@ -75,6 +75,7 @@ abstract final class AppStrings {
   static const editTask = 'Edit task';
   static const taskDetails = 'Task details';
   static const title = 'Title';
+  static const untitledTask = 'Untitled task';
   static const titleHint = 'What would you like to finish?';
   static const description = 'Description';
   static const descriptionHint = 'Add a little context (optional)';
