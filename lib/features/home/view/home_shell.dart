@@ -21,7 +21,7 @@ class _HomeShellState extends State<HomeShell> {
 
   List<Widget> get _defaultTabs => <Widget>[
     TasksWorkspace(active: _selectedIndex == 0),
-    const MusicScreen(embedded: true),
+    MusicScreen(embedded: true, active: _selectedIndex == 1),
     const VideoScreen(embedded: true),
     const ProfileScreen(embedded: true),
   ];

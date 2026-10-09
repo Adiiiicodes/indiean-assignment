@@ -10,6 +10,10 @@ import 'package:focusdesk/core/router/app_router.dart';
 import 'package:focusdesk/core/router/routes.dart';
 import 'package:focusdesk/data/models/task_model.dart';
 import 'package:focusdesk/features/audio/view/music_screen.dart';
+import 'package:focusdesk/features/audio/cubit/audio_cubit.dart';
+import 'package:focusdesk/features/audio/cubit/audio_state.dart';
+import 'package:focusdesk/data/repositories/audio_repository.dart';
+import 'package:focusdesk/data/datasources/media/audio_player_service.dart';
 import 'package:focusdesk/features/auth/view/login_screen.dart';
 import 'package:focusdesk/features/auth/view/signup_screen.dart';
 import 'package:focusdesk/features/auth/view/splash_screen.dart';
@@ -31,6 +35,8 @@ class _FrozenAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 class _FrozenTaskCubit extends MockCubit<TaskState> implements TaskCubit {}
 
+class _FrozenAudioCubit extends MockCubit<AudioState> implements AudioCubit {}
+
 Widget _host(GlobalKey<NavigatorState> navigatorKey, {TaskModel? task}) {
   final auth = _FrozenAuthCubit();
   when(() => auth.state).thenReturn(const AuthInitial());
@@ -41,10 +47,21 @@ Widget _host(GlobalKey<NavigatorState> navigatorKey, {TaskModel? task}) {
   );
   addTearDown(auth.close);
   addTearDown(tasks.close);
+  final audio = _FrozenAudioCubit();
+  when(() => audio.state).thenReturn(
+    AudioState(
+      status: AppPlayerStatus.paused,
+      tracks: const AudioRepository().focusTracks,
+      duration: const Duration(minutes: 3),
+    ),
+  );
+  when(() => audio.init()).thenAnswer((_) async {});
+  addTearDown(audio.close);
   return MultiBlocProvider(
     providers: [
       BlocProvider<AuthCubit>.value(value: auth),
       BlocProvider<TaskCubit>.value(value: tasks),
+      BlocProvider<AudioCubit>.value(value: audio),
     ],
     child: MaterialApp(
       navigatorKey: navigatorKey,

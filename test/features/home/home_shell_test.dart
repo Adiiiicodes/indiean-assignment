@@ -10,6 +10,10 @@ import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
 import 'package:focusdesk/data/models/user_model.dart';
 import 'package:focusdesk/features/audio/view/music_screen.dart';
+import 'package:focusdesk/features/audio/cubit/audio_cubit.dart';
+import 'package:focusdesk/features/audio/cubit/audio_state.dart';
+import 'package:focusdesk/data/repositories/audio_repository.dart';
+import 'package:focusdesk/data/datasources/media/audio_player_service.dart';
 import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:focusdesk/features/auth/cubit/auth_state.dart';
 import 'package:focusdesk/features/home/view/home_shell.dart';
@@ -21,9 +25,13 @@ import 'package:focusdesk/features/tasks/view/tasks_workspace.dart';
 import 'package:focusdesk/features/video/view/video_screen.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/fake_audio_player_service.dart';
+
 class _FrozenAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 class _FrozenTaskCubit extends MockCubit<TaskState> implements TaskCubit {}
+
+class _FrozenAudioCubit extends MockCubit<AudioState> implements AudioCubit {}
 
 const _labels = [
   AppStrings.tasks,
@@ -97,6 +105,7 @@ Future<void> _pumpShell(
   Size size = const Size(320, 568),
   Brightness brightness = Brightness.light,
   HomeShell shell = const HomeShell(),
+  AudioCubit Function()? audioFactory,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -117,11 +126,21 @@ Future<void> _pumpShell(
   when(() => tasks.state).thenReturn(TaskState(status: TaskStatus.success));
   addTearDown(auth.close);
   addTearDown(tasks.close);
+  final audio = _FrozenAudioCubit();
+  when(() => audio.state).thenReturn(
+    AudioState(
+      status: AppPlayerStatus.paused,
+      tracks: const AudioRepository().focusTracks,
+      duration: const Duration(minutes: 3),
+    ),
+  );
+  when(() => audio.init()).thenAnswer((_) async {});
   await tester.pumpWidget(
     MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>.value(value: auth),
         BlocProvider<TaskCubit>.value(value: tasks),
+        BlocProvider<AudioCubit>(create: (_) => audioFactory?.call() ?? audio),
       ],
       child: MaterialApp(
         theme: brightness == Brightness.light ? AppTheme.light : AppTheme.dark,
@@ -138,6 +157,46 @@ Future<void> _pumpShell(
 }
 
 void main() {
+  testWidgets('hidden Music stays lazy and first visit retains one player', (
+    tester,
+  ) async {
+    final service = FakeAudioPlayerService();
+    var creations = 0;
+    late AudioCubit audio;
+    await _pumpShell(
+      tester,
+      audioFactory: () {
+        creations++;
+        return audio = AudioCubit(const AudioRepository(), service);
+      },
+    );
+    expect(creations, 0);
+    expect(service.playlistLoads, isEmpty);
+    await _selectTab(tester, AppStrings.profile);
+    expect(creations, 0);
+
+    await _selectTab(tester, AppStrings.music);
+    expect(creations, 1);
+    expect(service.playlistLoads, hasLength(1));
+    expect(service.calls('play'), 0);
+    await audio.selectTrack(2);
+    await tester.pumpAndSettle();
+    expect(audio.state.currentIndex, 2);
+    await _selectTab(tester, AppStrings.tasks);
+    await _selectTab(tester, AppStrings.music);
+    expect(creations, 1);
+    expect(service.playlistLoads, hasLength(1));
+    expect(audio.state.currentIndex, 2);
+    expect(
+      tester.element(find.byType(MusicScreen)).read<AudioCubit>(),
+      same(audio),
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    expect(service.calls('dispose'), 1);
+    expect(tester.takeException(), isNull);
+  });
+
   for (final brightness in Brightness.values) {
     for (final (size, rail) in [
       (const Size(320, 568), false),
@@ -166,6 +225,14 @@ void main() {
                   )
                   .active,
               label == AppStrings.tasks,
+            );
+            expect(
+              tester
+                  .widget<MusicScreen>(
+                    find.byType(MusicScreen, skipOffstage: false),
+                  )
+                  .active,
+              label == AppStrings.music,
             );
             for (final entry in _tabTypes.entries) {
               expect(

@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T32
+NEXT_TASK: T33
 
 ## BUILD_CAPABILITY
 full
@@ -53,7 +53,7 @@ full
 - [x] T29 - Verify media URLs and add local fallbacks
 - [x] T30 - Track model and AudioPlayerService (just_audio wrapper)
 - [x] T31 - AudioCubit
-- [ ] T32 - Music player screen UI
+- [x] T32 - Music player screen UI
 - [ ] T33 - Audio states, errors and Android config
 - [ ] T34 - Audio integration test with fake service
 - [ ] T35 - Video player screen (Chewie, network)
@@ -75,6 +75,8 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- features/audio/view/music_screen.dart: lazy first visit, retained shared player, stream-safe seek preview/release, controls/repeat and3 selectable tracks; responsive artwork Row/Column. widgets/track_artwork.dart and track_list_tile.dart: themed gradients/pulse/equalizer honor active/TickerMode/reduced motion. music_screen_test.dart13 cases; shell lazy-init/revisit regression.
+
 - features/audio/cubit/audio_cubit.dart/audio_state.dart: shared lazy stream-derived player controls,3sPrevious, repeat/retry/completed-reset/stop/ownedcleanup. AppDependencies.audio/audioPlayerFactory and app-level lazy provider;25Cubit/state+2scope tests. test/helpers/fake_audio_player_service.dart reusable controllable streams/gates/failures/callrecords; tool/qa/audio_cubit_qa_screen.dart real native control/completion/error/retry probe.
 - data/models/track_model.dart and repositories/audio_repository.dart: immutable plain-data3-track catalog, verified URLs/artwork/moods; datasources/media/audio_player_service.dart: app-owned statuses/interface, JustAudio playlist/controls/indexed asset recovery/generation guards. audio_repository_test.dart3 + audio_player_service_test.dart19; tool/qa/audio_service_qa_screen.dart actual local/remote/offline controls.
 - T29 media: explicit bundled MP3/MP4 fallbacks (~2.74MB), MediaUrls asset/source constants; test/core/media_assets_test.dart loads actual bundles/manifest and checks signatures/size; tool/qa/media_assets_qa_screen.dart development-only native offline playback/pause/disposal probe.
@@ -122,6 +124,9 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T32 hidden Music returns an empty body until first visit so app-scope lazy decoder remains lazy; selected tab propagates active to artwork/equalizer. Scrub previews use captured track identity and seek once on release. Compact vertical spacing fits all controls above navigation on360x640dp;320dp/large-text remains scrollable. Current Flutter TickerMode.valuesOf replaces deprecated of.
+- Native debugger connections now detach on reload despite healthy app/ADB. Use explicit debug APK build/install/force-stop/start for dependable final-source native QA. Screenshot transfers retry up to3 bounded pulls after screencap and require a nonempty file; no image alteration.
+
 - AudioCubit is created lazily atappscope, with injectable playerfactory avoiding decoderstartup in unrelatedscreens/tests. Initialize only onfeaturevisit. Completed status while underlying firsttrack ispaused; Play replays. Indexchanges preserve duration untildecoder duration/null announcement because just_audio distinct durationstream omits same-duration changes. Cleanup detacheslisteners synchronously, startsservice.dispose now andawaitsallFutures; close returns sameFuture. Widget teardown FakeAsync waits mayneedbounded realyield+pump beforeassertingcontroller completion.
 - just_audio0.10.6 setAudioSources replaces deprecated concatenation. Player.play Future lasts untilpause/end: wrapper returns controls immediately and handles asyncerrors. Processing loading/buffering/completed override playingflag, hasPlayed distinguishes firstready/paused. Listen separate errorStream for latertrack failure. Android remote seek Future may remainpending after asset decoderreplacement: race operation against recovery completion; native offlineNext and2exact regressions verify controls release. Eachremote index can fallbackonce; generationguards stale loads/disposal.
 - T29 all5 declared media URLs return200. Long SoundHelix files exceed6MB; small Samplelib MP3 fallback (19.17s actual) and butterflyMP4(7.54s) total2737349bytes. Explicit asset entries avoid bundling source debris. FFmpeg8.1.2/ffprobe installed in WinGet Gyan.FFmpeg package verified codecs. Native position updates can prevent UIAutomator idling: use observed control bounds/screenshot, pause, then fresh hierarchy.
@@ -167,8 +172,8 @@ full
 
 
 
-- Resident native tty session51228, tool/native_qa.dart, PID21229; launcher after T31 real Cubit controls/completion/repeat/error/retry/disposal. WiFi/data restored; device720x1280/font1.0/light. Nine agent-only tasks retained. Use --no-dds; lowercase r reload reliable; uppercase R intermittent connection loss. Cold q/run resets. Native tabs include newline Tab n of m; skip ensureVisible for already-hit-testable controls inside TabBarView.
-- 01:00IST10Oct checkpoint:29/52 committed,23remaining;3verifiedcommits/30min; ETA6–8h/completion07:00–09:00IST. Next checkpoint01:30IST.
+- Native production APK PID24345; no resident Flutter tty. Debug APK build/install/start workflow verified. Device720x1280/font1.0/light, WiFi/data enabled; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
+- 01:30IST10Oct checkpoint:32/52 committed,20remaining;3verifiedcommits/30min; ETA5–7h/completion06:30–08:30IST. Next checkpoint02:00IST.
 
 
 

@@ -135,6 +135,7 @@ void main() {
     final navigator = Navigator.of(loginContext);
     navigator.pushNamed(Routes.music);
     await tester.pumpAndSettle();
+    expect(service.loads, 1);
     expect(
       tester.element(find.byType(MusicScreen)).read<AudioCubit>(),
       same(audio),
@@ -146,7 +147,7 @@ void main() {
       same(audio),
     );
     expect(factoryCalls, 1);
-    expect(service.loads, 0);
+    expect(service.loads, 1);
 
     await audio.init();
     await tester.pump();

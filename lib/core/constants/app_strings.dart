@@ -132,8 +132,11 @@ abstract final class AppStrings {
   static const buffering = 'Buffering…';
   static const completed = 'Completed';
   static const offlinePlayback = 'Playing the local fallback';
-  static const musicSubtitle =
-      'Choose a soundtrack for your next focus session.';
+  static const musicSubtitle = 'A soundtrack for your next focus session.';
+  static const focusTracks = 'Focus tracks';
+  static const repeatAllOn = 'Repeat all: on';
+  static const repeatAllOff = 'Repeat all: off';
+  static const unknownDuration = '--:--';
   static const videosSubtitle = 'Take a short break, then return to your task.';
   static const trackOne = 'Lo-fi Drift';
   static const trackTwo = 'Ambient Bloom';
