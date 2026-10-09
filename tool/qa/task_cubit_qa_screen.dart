@@ -94,17 +94,21 @@ class _TaskCubitQaScreenState extends State<TaskCubitQaScreen> {
         title: 'Alpha plan',
         description: 'Coding notes',
         priority: TaskPriority.low,
+        dueDate: DateTime.now(),
       ),
       TaskModel(
         id: 'qa-cubit-beta',
         title: 'Beta review',
         priority: TaskPriority.high,
+        description: 'Review the plan and decide the next small step.',
+        dueDate: DateTime.now().subtract(const Duration(days: 1)),
       ),
       TaskModel(
         id: 'qa-cubit-gamma',
         title: 'Gamma complete',
         priority: TaskPriority.high,
         isDone: true,
+        source: TaskSource.imported,
       ),
     ];
     for (final task in probes) {

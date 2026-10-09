@@ -14,6 +14,7 @@ import 'package:focusdesk/features/auth/cubit/auth_state.dart';
 import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
 import 'package:focusdesk/features/tasks/cubit/task_state.dart';
 import 'package:focusdesk/features/tasks/view/tasks_tab.dart';
+import 'package:focusdesk/features/tasks/widgets/task_card.dart';
 import 'package:focusdesk/shared/widgets/app_button.dart';
 import 'package:focusdesk/shared/widgets/app_text_field.dart';
 import 'package:focusdesk/shared/widgets/error_view.dart';
@@ -424,7 +425,7 @@ void main() {
     await _pumpTab(tester);
     await _tapVisible(
       tester,
-      find.widgetWithText(ListTile, _tasks.first.title),
+      find.widgetWithText(TaskCard, _tasks.first.title),
     );
     expect(
       find.text('Destination ${Routes.taskDetails}: ${_tasks.first.id}'),

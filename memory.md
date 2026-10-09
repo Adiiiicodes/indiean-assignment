@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T21
+NEXT_TASK: T22
 
 ## BUILD_CAPABILITY
 full
@@ -42,7 +42,7 @@ full
 - [x] T18 - TaskCubit with search, filter and undo
 - [x] T19 - Home shell with bottom navigation
 - [x] T20 - Tasks tab UI (header, search, filters, list)
-- [ ] T21 - TaskCard widget with Hero and checkbox
+- [x] T21 - TaskCard widget with Hero and checkbox
 - [ ] T22 - Add/Edit task form screen
 - [ ] T23 - Task details screen
 - [ ] T24 - Wire up tasks end-to-end and test
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- features/tasks/widgets/task_card.dart: themed rounded interactive card, built-in animated checkbox, Hero title, completion strike, description and wrapped priority/date/import badges; test/features/tasks/task_card_test.dart10 cases; TasksTab uses it within existing swipe/undo.
 - features/tasks/view/tasks_tab.dart: time/name greeting,400ms search, combined horizontal filters, lazy sliver list, refresh/loading/empty/error/add routes and swipe/undo retry; test/features/tasks/tasks_tab_test.dart covers20 cases. Shared EmptyView compact option keeps phone CTA visible.
 - features/home/view/home_shell.dart: four IndexedStack tabs, phone NavigationBar, rail at720dp, preserved state across resize and Back-to-Tasks handling; HomeScreen retains auth/logout; media/profile placeholders support embedded bodies and standalone routes; test/features/home/home_shell_test.dart.
 - features/tasks/cubit/{task_state,task_cubit}.dart: immutable task state, combined synchronous search/filters, CRUD/undo, friendly errors and stale-operation reset guards; app.dart binds shared task loading/reset to auth identity; test/features/tasks/{task_cubit,task_session}_test.dart and native Cubit QA.
@@ -148,7 +149,7 @@ full
 
 
 
-- Resident native QA tty session33072, target tool/native_qa.dart, PID13408; production app open, Demo User logged in, task storage empty. Use --no-dds for Flutter run; lowercase r reload succeeds, uppercase R intermittently loses connection and leaves prior app state, so cold build/run for QA launcher reset. Actual Journey User/demo accounts remain emulator-only. Task state loads once per authenticated identity; logout or identity replacement resets state and invalidates old reads.
+- Resident native QA tty session35753, target tool/native_qa.dart, PID13828; production app open, Demo logged in. Three marker tasks remain for form verification: Gamma imported/pending; Beta high/done/pastdue; Alpha low/pending/today. Actual device/font/night mode restored. Use --no-dds; lowercase r reload succeeds, uppercase R intermittently loses connection leaving prior app state; cold build/run resets launcher. Actual accounts/probes remain emulator-only. Task state loads once per identity and logout/replacement invalidates old reads.
 
 
 

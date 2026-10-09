@@ -11,6 +11,7 @@ import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:focusdesk/features/auth/cubit/auth_state.dart';
 import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
 import 'package:focusdesk/features/tasks/cubit/task_state.dart';
+import 'package:focusdesk/features/tasks/widgets/task_card.dart';
 import 'package:focusdesk/shared/widgets/app_snackbar.dart';
 import 'package:focusdesk/shared/widgets/app_text_field.dart';
 import 'package:focusdesk/shared/widgets/empty_view.dart';
@@ -412,20 +413,9 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
           color: scheme.onErrorContainer,
         ),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-        leading: Tooltip(
-          message: task.isDone ? AppStrings.markUndone : AppStrings.markDone,
-          child: Checkbox(
-            value: task.isDone,
-            onChanged: loading
-                ? null
-                : (_) => unawaited(cubit.toggleDone(task.id)),
-          ),
-        ),
-        title: Text(task.title, maxLines: 2, overflow: TextOverflow.ellipsis),
-        subtitle: Text(task.priority.label),
-        trailing: const Icon(Icons.chevron_right_rounded),
+      child: TaskCard(
+        task: task,
+        onToggle: loading ? null : () => unawaited(cubit.toggleDone(task.id)),
         onTap: () {
           FocusManager.instance.primaryFocus?.unfocus();
           unawaited(
