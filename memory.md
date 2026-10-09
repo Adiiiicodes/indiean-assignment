@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T19
+NEXT_TASK: T20
 
 ## BUILD_CAPABILITY
 full
@@ -40,7 +40,7 @@ full
 - [x] T16 - Task model and priority enum
 - [x] T17 - Task local datasource and repository
 - [x] T18 - TaskCubit with search, filter and undo
-- [ ] T19 - Home shell with bottom navigation
+- [x] T19 - Home shell with bottom navigation
 - [ ] T20 - Tasks tab UI (header, search, filters, list)
 - [ ] T21 - TaskCard widget with Hero and checkbox
 - [ ] T22 - Add/Edit task form screen
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- features/home/view/home_shell.dart: four IndexedStack tabs, phone NavigationBar, rail at720dp, preserved state across resize and Back-to-Tasks handling; HomeScreen retains auth/logout; media/profile placeholders support embedded bodies and standalone routes; test/features/home/home_shell_test.dart.
 - features/tasks/cubit/{task_state,task_cubit}.dart: immutable task state, combined synchronous search/filters, CRUD/undo, friendly errors and stale-operation reset guards; app.dart binds shared task loading/reset to auth identity; test/features/tasks/{task_cubit,task_session}_test.dart and native Cubit QA.
 - data/datasources/local/task_local_datasource.dart and data/repositories/task_repository.dart: strict-identity Hive JSON task CRUD, newest-first reads, serialized mutations, exact undo snapshots and friendly storage errors; test/data/task_repository_test.dart and tool/qa/task_repository_qa_screen.dart.
 - data/models/task_model.dart: immutable UUID task, priority/source enums, tolerant JSON and calendar helpers; test/data/task_model_test.dart; tool/qa/task_model_qa_screen.dart native model probe.
@@ -145,7 +146,7 @@ full
 
 
 
-- Resident native QA tty session41950, target tool/native_qa.dart, PID10150; Cubit probe cleared. Native auth is logged out; actual Journey User/demo accounts retained only emulator data. Task state loads once per authenticated identity; logout or identity replacement resets state and invalidates old reads.
+- Resident native production tty session70820, target lib/main.dart, PID11573; Demo User logged in, task storage empty. Use --no-dds for Flutter run to avoid intermittent Windows DDS socket refusal (deprecated --disable-dds is ignored by this SDK). Actual Journey User/demo accounts remain emulator-only. Task state loads once per authenticated identity; logout or identity replacement resets state and invalidates old reads.
 
 
 
