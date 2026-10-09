@@ -1,9 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focusdesk/app.dart';
 
+import 'helpers/app_dependencies.dart';
+
 void main() {
   testWidgets('FocusDesk scaffold opens without an exception', (tester) async {
-    await tester.pumpWidget(const FocusDeskApp());
+    final dependencies = await createTestDependencies();
+    await tester.pumpWidget(FocusDeskApp(dependencies: dependencies));
     expect(find.text('FocusDesk'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

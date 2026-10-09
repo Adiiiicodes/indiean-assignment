@@ -3,6 +3,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:focusdesk/app.dart';
+import 'package:focusdesk/bootstrap.dart';
+import 'package:focusdesk/core/errors/app_exception.dart';
+import 'package:focusdesk/core/errors/exception_mapper.dart';
 import 'package:focusdesk/core/theme/app_colors.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -11,11 +14,20 @@ import 'package:uuid/uuid.dart';
 
 import 'qa/core_qa_screen.dart';
 import 'qa/shared_qa_screen.dart';
+import 'qa/storage_qa_screen.dart';
 
-void main() => runApp(const NativeQaApp());
+Future<void> main() async {
+  try {
+    final dependencies = await bootstrap();
+    runApp(NativeQaApp(dependencies: dependencies));
+  } catch (error) {
+    runApp(BootstrapErrorApp(failure: mapException(error)));
+  }
+}
 
 class NativeQaApp extends StatefulWidget {
-  const NativeQaApp({super.key});
+  const NativeQaApp({required this.dependencies, super.key});
+  final AppDependencies dependencies;
 
   @override
   State<NativeQaApp> createState() => _NativeQaAppState();
@@ -23,10 +35,16 @@ class NativeQaApp extends StatefulWidget {
 
 class _NativeQaAppState extends State<NativeQaApp> {
   bool _showProductionApp = false;
+  bool _showStartupFailure = false;
 
   @override
   Widget build(BuildContext context) {
-    if (_showProductionApp) return const FocusDeskApp();
+    if (_showProductionApp) {
+      return FocusDeskApp(dependencies: widget.dependencies);
+    }
+    if (_showStartupFailure) {
+      return const BootstrapErrorApp(failure: StorageException());
+    }
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
@@ -34,6 +52,8 @@ class _NativeQaAppState extends State<NativeQaApp> {
       themeMode: ThemeMode.system,
       builder: AppTheme.systemUiBuilder,
       home: NativeQaScreen(
+        dependencies: widget.dependencies,
+        onStartupFailure: () => setState(() => _showStartupFailure = true),
         onOpenProduction: () => setState(() => _showProductionApp = true),
       ),
     );
@@ -41,9 +61,16 @@ class _NativeQaAppState extends State<NativeQaApp> {
 }
 
 class NativeQaScreen extends StatefulWidget {
-  const NativeQaScreen({required this.onOpenProduction, super.key});
+  const NativeQaScreen({
+    required this.onOpenProduction,
+    required this.onStartupFailure,
+    required this.dependencies,
+    super.key,
+  });
 
   final VoidCallback onOpenProduction;
+  final VoidCallback onStartupFailure;
+  final AppDependencies dependencies;
 
   @override
   State<NativeQaScreen> createState() => _NativeQaScreenState();
@@ -147,6 +174,21 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
                   ),
                 ),
                 child: const Text('Shared widgets gallery'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        StorageQaScreen(dependencies: widget.dependencies),
+                  ),
+                ),
+                child: const Text('Storage services'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: widget.onStartupFailure,
+                child: const Text('Startup error and retry'),
               ),
               const SizedBox(height: 12),
               OutlinedButton(

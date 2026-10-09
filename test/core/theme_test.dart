@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:focusdesk/app.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
 
+import '../helpers/app_dependencies.dart';
+
 void main() {
   tearDown(() {
     TestWidgetsFlutterBinding.instance.platformDispatcher
@@ -13,7 +15,8 @@ void main() {
     testWidgets('app follows system ${brightness.name} theme', (tester) async {
       tester.platformDispatcher.platformBrightnessTestValue = brightness;
 
-      await tester.pumpWidget(const FocusDeskApp());
+      final dependencies = await createTestDependencies();
+      await tester.pumpWidget(FocusDeskApp(dependencies: dependencies));
       await tester.pumpAndSettle();
 
       final theme = Theme.of(tester.element(find.byType(Scaffold)));
