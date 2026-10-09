@@ -113,6 +113,35 @@ Widget _host(GlobalKey<NavigatorState> navigatorKey, {TaskModel? task}) {
 }
 
 void main() {
+  testWidgets('reduced motion omits page fade and slide', (tester) async {
+    const child = SizedBox(key: ValueKey('route-child'));
+    late BuildContext routeContext;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: Builder(
+            builder: (context) {
+              routeContext = context;
+              return child;
+            },
+          ),
+        ),
+      ),
+    );
+    final route = AppRouter.onGenerateRoute(
+      const RouteSettings(name: Routes.login),
+    ) as PageRouteBuilder<dynamic>;
+    final transition = route.buildTransitions(
+      routeContext,
+      const AlwaysStoppedAnimation<double>(0.2),
+      const AlwaysStoppedAnimation<double>(0),
+      child,
+    );
+    expect(transition, same(child));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('named routes preserve settings and return to splash on pop', (
     tester,
   ) async {

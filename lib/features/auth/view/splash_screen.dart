@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:focusdesk/core/constants/app_constants.dart';
 import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/router/routes.dart';
-import 'package:focusdesk/core/theme/app_colors.dart';
 import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:focusdesk/features/auth/cubit/auth_state.dart';
 
@@ -93,20 +92,11 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
+                          Image.asset(
+                            AppConstants.appIconAsset,
                             width: 104,
                             height: 104,
-                            decoration: BoxDecoration(
-                              gradient: AppColors.brandGradient(
-                                theme.colorScheme,
-                              ),
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: Icon(
-                              Icons.check_circle_outline_rounded,
-                              size: 56,
-                              color: theme.colorScheme.onPrimary,
-                            ),
+                            excludeFromSemantics: true,
                           ),
                           const SizedBox(height: 28),
                           Text(

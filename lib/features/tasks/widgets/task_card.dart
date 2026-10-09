@@ -25,91 +25,94 @@ class TaskCard extends StatelessWidget {
     final toggleLabel = task.isDone
         ? AppStrings.markUndone
         : AppStrings.markDone;
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 12, 12, 12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Tooltip(
-                message: toggleLabel,
-                child: Checkbox(
-                  value: task.isDone,
-                  semanticLabel: toggleLabel,
-                  onChanged: onToggle == null ? null : (_) => onToggle!(),
+    return HeroMode(
+      enabled: !MediaQuery.disableAnimationsOf(context),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(4, 12, 12, 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Tooltip(
+                  message: toggleLabel,
+                  child: Checkbox(
+                    value: task.isDone,
+                    semanticLabel: toggleLabel,
+                    onChanged: onToggle == null ? null : (_) => onToggle!(),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Hero(
-                      tag: heroTag(task.id),
-                      child: Material(
-                        type: MaterialType.transparency,
-                        child: Text(
-                          task.title,
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Hero(
+                        tag: heroTag(task.id),
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: Text(
+                            task.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: task.isDone
+                                  ? scheme.onSurfaceVariant
+                                  : scheme.onSurface,
+                              decoration: task.isDone
+                                  ? TextDecoration.lineThrough
+                                  : TextDecoration.none,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (task.description.trim().isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          task.description,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: task.isDone
-                                ? scheme.onSurfaceVariant
-                                : scheme.onSurface,
-                            decoration: task.isDone
-                                ? TextDecoration.lineThrough
-                                : TextDecoration.none,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
                           ),
                         ),
-                      ),
-                    ),
-                    if (task.description.trim().isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        task.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          PriorityChip(priority: task.priority.name),
+                          if (task.dueDate != null) _dueChip(context),
+                          if (task.source == TaskSource.imported)
+                            Chip(
+                              avatar: const Icon(
+                                Icons.download_done_rounded,
+                                size: 16,
+                              ),
+                              label: const Text(AppStrings.imported),
+                              labelStyle: theme.textTheme.labelMedium,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                        ],
                       ),
                     ],
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        PriorityChip(priority: task.priority.name),
-                        if (task.dueDate != null) _dueChip(context),
-                        if (task.source == TaskSource.imported)
-                          Chip(
-                            avatar: const Icon(
-                              Icons.download_done_rounded,
-                              size: 16,
-                            ),
-                            label: const Text(AppStrings.imported),
-                            labelStyle: theme.textTheme.labelMedium,
-                            visualDensity: VisualDensity.compact,
-                          ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Icon(
-                  Icons.chevron_right_rounded,
-                  color: scheme.onSurfaceVariant,
+                const SizedBox(width: 4),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

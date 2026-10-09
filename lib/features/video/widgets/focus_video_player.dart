@@ -353,7 +353,9 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
               },
             ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-            FadeTransition(opacity: animation, child: child),
+            MediaQuery.disableAnimationsOf(context)
+            ? child
+            : FadeTransition(opacity: animation, child: child),
       );
       _fullscreenRoute = route;
       await navigator.push(route);

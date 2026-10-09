@@ -46,6 +46,7 @@ abstract final class AppRouter {
       reverseTransitionDuration: const Duration(milliseconds: 180),
       pageBuilder: (context, animation, secondaryAnimation) => screen,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        if (MediaQuery.disableAnimationsOf(context)) return child;
         final curve = CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,

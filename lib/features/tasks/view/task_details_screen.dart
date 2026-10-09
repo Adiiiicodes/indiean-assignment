@@ -274,16 +274,19 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   padding: EdgeInsets.only(bottom: 16),
                   child: LinearProgressIndicator(),
                 ),
-              Hero(
-                tag: TaskCard.heroTag(task.id),
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: Text(
-                    task.title,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      decoration: task.isDone
-                          ? TextDecoration.lineThrough
-                          : null,
+              HeroMode(
+                enabled: !MediaQuery.disableAnimationsOf(context),
+                child: Hero(
+                  tag: TaskCard.heroTag(task.id),
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: Text(
+                      task.title,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        decoration: task.isDone
+                            ? TextDecoration.lineThrough
+                            : null,
+                      ),
                     ),
                   ),
                 ),

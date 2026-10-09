@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T45
+NEXT_TASK: T46
 
 ## BUILD_CAPABILITY
 full
@@ -66,7 +66,7 @@ full
 - [x] T42 - Focus Session screen UI
 - [x] T43 - Stats card on Home and Profile
 - [x] T44 - Responsive and accessibility audit
-- [ ] T45 - Motion polish, app icon and native splash
+- [x] T45 - Motion polish, app icon and native splash
 - [ ] T46 - Full app smoke test
 - [ ] T47 - Release APK build and verification
 - [ ] T48 - OPTIONAL stretch: background audio and media notification
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- T45: StateMotion excludes outgoing input/semantics/Hero, bounded task panels switch while populated slivers keep identity; MotionEntry adds finite220ms fade/6px entrance inside keyed Dismissible. Compact EmptyView tinted decorative circle. Router/Card/Details/fullscreen honor reduced motion. Pillow tool/generate_app_icon.py creates five branding PNGs and optional --fix-splash-themes postprocess; launcher/splash day/night/density resources configured. MainActivity applies OS bar appearance once during native-to-Flutter handoff; Flutter owns later styling. Five motion regressions and one reduced-route test.
 - T44: responsive_test.dart exercises ten populated screens across five sizes and two text scales (100 cases), with scroll and full demo-label glyph containment assertions. Accessibility tests inspect actual Login/Music/Details semantics and tap guidelines. Login demo action is a wrapping full-width OutlinedButton, preserving autofill and busy guards.
 - StatsCubit/State/Card: serialized generation-safe snapshots, four accessible responsive totals, loading/friendly Retry/zero message. App task/auth bindings plus Tasks/Profile activation, Detailsreturn and accepted Focus revision refresh shared state.7 unit+7 widget+1 wholeapp stats journey; FrozenStats helper keeps unrelated standalone fixtures deterministic.
 - FocusScreen owns Timer with persisted durations, responsive Countdown and confirmed reset/leave. FocusMusicPlayer serializes cancellation-aware shared Audio controls; FocusCompletionDialog waits accepted save and verifies Yes task update/Retry.11 full widget flows +2 bad-payload router cases. Native QA shared Audio lifecycle wrapper and production/isolated3sec screen probe.
@@ -140,6 +141,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T45 native launch follows OS day/night; Flutter first frame still follows persisted app theme. Regenerate with Python icon script, dart run flutter_launcher_icons, dart run flutter_native_splash:create, then Python --fix-splash-themes. XML bar contrast requires drawSystemBarBackgrounds; embedding resets navigation appearance during handoff, so one posted MainActivity callback restores OS contrast before Flutter style updates (no persistent observer). Actual launcher coldstarts verify both modes. All native QA now runs after build/fulltests finish: debug emulator keyboard input during concurrent fullsuite+resize hit ANR04:45:36/PID10636; quiet fresh runs11497/11615/12140/12286 passed, same last-ANR timestamp. Host contention is an inference; release startup/journey must still be proven T47.
 - T44 actual small-screen large-text audit found horizontal demo-chip text clipping without a RenderFlex exception; replaced it with a wrapping full-width button and added glyph-bound checks. All existing icon-only controls already supply tooltips; three actual-screen semantics/tap-target regressions preserve them. Native remote load initially failed transiently, actual Retry recovered06:12/play-pause02; no network reliability claim is inferred from fake tests.
 - T43 stats are app-scoped; only successful task loads or actual list changes refresh, query/filter do not. Accepted Timer revision refreshes optional Stats provider (standalone Focus tests/QA can omit it); Tasks/Profile tab activation and Detailsreturn also reload. Profile confirmedclear resets read generation and always refreshes afterward, auth logout/identitychange reset; currentAuth guard blocks late task success from prior session. Repository semantics retain T40 local-day/partial/flooring/completion approximation.
 - T41 accumulates fractional active durations across pause/resume, uses elapsed clock rather than tick count, clamps delayed overshoot and freezes backwards-clock highwater. Natural completion always saves; early finish saves only actualSeconds>10. finishEarly true means accepted finish, not necessarily a persisted short partial; lastSession+revision signals accepted save. Reset discards current elapsed time without logging. Failed save retains exact frozen UUID; new start/reset/config blocked until Retry accepted. close cancels ticker/closes emissions immediately and waits an existing save, without inventing partials. T42 completion dialog must await lastSession.completed and successful revision; shared music needs race-safe cancellation of delayed init/autoplay. QA3sec conversion is isolated from production default minutes*60.
@@ -185,6 +187,7 @@ full
 
 ## Known Issues / BLOCKED items
 - No active blockers. Completed task automated/native evidence is in logs.md.
+- Debug emulator ANRs occurred03:08underconcurrent startup/testing and04:45:36duringconcurrent resize/keyboard/fullsuite. Quiet retries passed without newer ANRs. Serialize all native checks with builds/tests; verify release independently. No checked Dart exceptions/overflow/fatal on quiet final runs.
 
 ## Human To-Do (things the human must do after the build)
 
@@ -204,7 +207,7 @@ full
 
 
 
-- Production APK PID9166, one pending long-title audit task/zero sessions, Focus Tester/System25. Final187-file format/analyze/795tests and debug34.4s passed. Actual small320/font1.3/Dark, tablet800/font1.3 and landscape891x411/keyboard/scroll passed. Restored720x1280/font1/OSlight/free0/ignorefalse; filtered runtime clean.
+- Production APK PID12286, one pending audit task/zero sessions, Focus Tester/System25. Final189-file format/analyze/801tests88s and last debug17.8s passed. Actual light/dark launcher/native splash contrast, task navigation/state transitions, reduced-motion video fullscreen07s/return07s, quiet320/font1.3/dark keyboard/filteredEmpty/Clear passed. Restored720x1280/font1/OSlight/free0/ignorefalse/allanimation scales1; runtime clean; lastANR remains04:45:36 concurrent stress event.
 - 04:30IST10Oct checkpoint:44/52 committed,8remaining;2verifiedcommits/30min. T44 final795tests/native responsive gates passed, finishing commit. ETA2–3.5h/completion06:30–08:00IST; next checkpoint05:00IST. After T44commit45/52done7remain.
 
 

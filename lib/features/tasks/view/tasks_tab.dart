@@ -17,6 +17,7 @@ import 'package:focusdesk/shared/widgets/app_text_field.dart';
 import 'package:focusdesk/shared/widgets/empty_view.dart';
 import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
+import 'package:focusdesk/shared/widgets/motion.dart';
 import 'package:focusdesk/features/focus/cubit/stats_cubit.dart';
 import 'package:focusdesk/features/focus/widgets/stats_card.dart';
 
@@ -275,42 +276,55 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
                     if (state.status == TaskStatus.failure &&
                         state.tasks.isNotEmpty)
                       SliverToBoxAdapter(child: _inlineError(state, cubit)),
-                    if (state.tasks.isEmpty &&
-                        (loading || state.status == TaskStatus.initial))
-                      _stateSliver(const LoadingView())
-                    else if (state.status == TaskStatus.failure &&
-                        state.tasks.isEmpty)
-                      _stateSliver(
-                        ErrorView(
-                          message:
-                              state.errorMessage ?? AppStrings.storageError,
-                          onRetry: () => unawaited(cubit.load()),
-                        ),
-                      )
-                    else if (tasks.isEmpty)
-                      _stateSliver(
-                        state.tasks.isEmpty
-                            ? EmptyView(
-                                compact: true,
-                                icon: Icons.checklist_rounded,
-                                title: AppStrings.noTasksTitle,
-                                message: AppStrings.noTasksMessage,
-                                actionLabel: AppStrings.addTask,
-                                onAction: loading
-                                    ? null
-                                    : () =>
-                                          unawaited(_addTask(snackbarContext)),
-                              )
-                            : EmptyView(
-                                compact: true,
-                                icon: Icons.search_off_rounded,
-                                title: AppStrings.noResultsTitle,
-                                message: AppStrings.noResultsMessage,
-                                actionLabel: AppStrings.clearFilters,
-                                onAction: _clearFilters,
-                              ),
-                      )
-                    else
+                    _stateSliver(
+                      state.tasks.isEmpty &&
+                              (loading || state.status == TaskStatus.initial)
+                          ? const LoadingView()
+                          : state.status == TaskStatus.failure &&
+                                state.tasks.isEmpty
+                          ? ErrorView(
+                              message:
+                                  state.errorMessage ?? AppStrings.storageError,
+                              onRetry: () => unawaited(cubit.load()),
+                            )
+                          : tasks.isEmpty
+                          ? state.tasks.isEmpty
+                                ? EmptyView(
+                                    compact: true,
+                                    icon: Icons.checklist_rounded,
+                                    title: AppStrings.noTasksTitle,
+                                    message: AppStrings.noTasksMessage,
+                                    actionLabel: AppStrings.addTask,
+                                    onAction: loading
+                                        ? null
+                                        : () => unawaited(
+                                            _addTask(snackbarContext),
+                                          ),
+                                  )
+                                : EmptyView(
+                                    compact: true,
+                                    icon: Icons.search_off_rounded,
+                                    title: AppStrings.noResultsTitle,
+                                    message: AppStrings.noResultsMessage,
+                                    actionLabel: AppStrings.clearFilters,
+                                    onAction: _clearFilters,
+                                  )
+                          : const SizedBox.shrink(),
+                      panelKey:
+                          state.tasks.isEmpty &&
+                              (loading || state.status == TaskStatus.initial)
+                          ? 'loading'
+                          : state.status == TaskStatus.failure &&
+                                state.tasks.isEmpty
+                          ? 'error'
+                          : tasks.isEmpty
+                          ? state.tasks.isEmpty
+                                ? 'empty'
+                                : 'filtered'
+                          : 'content',
+                      hasContent: tasks.isNotEmpty,
+                    ),
+                    if (tasks.isNotEmpty)
                       SliverPadding(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
                         sliver: SliverList.builder(
@@ -350,7 +364,11 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
     );
   }
 
-  Widget _stateSliver(Widget child) {
+  Widget _stateSliver(
+    Widget child, {
+    required String panelKey,
+    required bool hasContent,
+  }) {
     return SliverLayoutBuilder(
       builder: (context, constraints) {
         final remaining =
@@ -359,12 +377,12 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
         return SliverToBoxAdapter(
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight: remaining > 0 ? remaining : 0,
+              minHeight: !hasContent && remaining > 0 ? remaining : 0,
             ),
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 32),
-                child: child,
+                padding: EdgeInsets.only(bottom: hasContent ? 0 : 32),
+                child: StateMotion(stateKey: panelKey, child: child),
               ),
             ),
           ),
@@ -505,10 +523,13 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
           color: scheme.onErrorContainer,
         ),
       ),
-      child: TaskCard(
-        task: task,
-        onToggle: loading ? null : () => unawaited(cubit.toggleDone(task.id)),
-        onTap: () => unawaited(_openDetails(task, cubit, snackbarContext)),
+      child: MotionEntry(
+        enabled: widget.active,
+        child: TaskCard(
+          task: task,
+          onToggle: loading ? null : () => unawaited(cubit.toggleDone(task.id)),
+          onTap: () => unawaited(_openDetails(task, cubit, snackbarContext)),
+        ),
       ),
     );
   }

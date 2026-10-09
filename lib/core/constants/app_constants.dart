@@ -1,4 +1,5 @@
 abstract final class AppConstants {
+  static const appIconAsset = 'assets/images/app_icon.png';
   static const appVersion = '1.0.0';
   static const usersKey = 'registered_users';
   static const sessionUserKey = 'session_user_id';
