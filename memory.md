@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T02
+NEXT_TASK: T03
 
 ## BUILD_CAPABILITY
 full
@@ -12,7 +12,7 @@ full
 - Android SDK: C:\Users\DELL\AppData\Local\Android\Sdk; platforms 35, 36, 36.1 and corresponding build tools present.
 - Java for Flutter/Gradle: Android Studio bundled JBR 21.0.9 at C:\Program Files\Android\Android Studio\jbr; default global Java is Corretto 25.0.3.
 - ADB: 37.0.0; emulator 36.4.10.0; WHPX acceleration installed and usable.
-- Native UI automation: Computer Use @oai/sky initializes and lists windows successfully.
+- Native UI automation: Computer Use @oai/sky initializes/lists windows, but its occluded emulator screenshot showed the desktop. Use Android ADB screencap/pull and actual touch/text/back commands for reliable native user-flow verification; device screenshot720x1280 was visually checked.
 - Flutter SDK: C:\Users\DELL\flutter; Flutter 3.47.7 stable, Dart 3.13.5, DevTools 2.60.0; stable commit abaf9c523780a608bd46686fd5e53740a07077f8 (published 2026-10-08). Android SDK and JBR configured; analytics disabled.
 - Running device: emulator-5554, FocusDesk_API35, Android 15/API35/default x86_64 revision2; 720x1280 at320dpi (360x640dp), 2GB RAM/2cores, host GPU. Boot completed and launcher/shell/back/home verified.
 - Flutter doctor Android toolchain passes (SDK36.1.0, Java21, all licenses accepted). PATH warnings are avoided with the session PATH line below; Visual Studio warning applies to Windows desktop only. First APK/Gradle resolution will be proven by T02.
@@ -22,7 +22,7 @@ full
 ## Task Checklist
 - [x] T00 - Create control files (context.md, memory.md, logs.md)
 - [x] T01 - Check and prepare the Flutter/Android toolchain
-- [ ] T02 - Create the Flutter project and Android basics
+- [x] T02 - Create the Flutter project and Android basics
 - [ ] T03 - Add dependencies
 - [ ] T04 - Folder structure and lint rules
 - [ ] T05 - Theme system (colors, text styles, light/dark)
@@ -74,8 +74,12 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- lib/main.dart: minimal FocusDesk application; test/widget_test.dart: native scaffold widget smoke test.
+- android/: Android com.focusdesk.focusdesk configuration; main manifest Internet permission and cleartext disabled.
+- .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- Gradle uses the already-cached 9.3.1 bin distribution; heap 3GB/workers4 fit the host with its emulator. NDK27.1.12297006 passed the scaffold build; validate added plugin requirements in T03.
 - User instructions take precedence over prompt fallbacks: every completed feature must pass automated verification and an actual running-app user flow before committing and advancing. No unverified feature counts as complete.
 - Git author is local-only: Adiiiicodes <nalawadeaditya017@gmail.com>. Plain prompt-specified commit subjects, no co-author or AI attribution trailers.
 - Use Windows PowerShell equivalents for the shell commands in prompts. Keep tasks strictly sequential; agents may assist within the current task.
@@ -86,7 +90,7 @@ full
 - The user authorized SDK installation, emulator provisioning, all implementation and local test/commit steps without further clarification.
 
 ## Known Issues / BLOCKED items
-- No active blockers. First debug APK and actual app launch are the T02 completion gate.
+- No active blockers. T02 debug APK built and native launch/Home/Back/reopen checks passed.
 
 ## Human To-Do (things the human must do after the build)
 
@@ -101,3 +105,5 @@ full
 - SDK source confirms broad --android also fetches internal Flutter build binaries. Supported narrower flags skip about525MB of remaining internal-only archives; no cache stamps modified. Actual Maven/Gradle build remains verified in T02.
 - ADB executable: C:\Users\DELL\AppData\Local\Android\Sdk\platform-tools\adb.exe
 - Bundled artifact Python/Pillow verified: Python3.12.14.
+
+
