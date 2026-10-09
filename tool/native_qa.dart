@@ -32,6 +32,12 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
   String _result = 'Ready for an actual Android storage probe.';
   bool _running = false;
 
+  Future<void> _openProductionApp() async {
+    // Let the current native pointer packet finish before replacing the root.
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    if (mounted) production.main();
+  }
+
   Future<void> _probeDependencies() async {
     setState(() {
       _running = true;
@@ -104,7 +110,7 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
               Text(_result, key: const ValueKey('qa-result')),
               const SizedBox(height: 24),
               OutlinedButton(
-                onPressed: _running ? null : production.main,
+                onPressed: _running ? null : _openProductionApp,
                 child: const Text('Open production app'),
               ),
             ],

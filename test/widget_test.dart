@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:focusdesk/main.dart';
+import 'package:focusdesk/app.dart';
 
 void main() {
   testWidgets('FocusDesk scaffold opens without an exception', (tester) async {

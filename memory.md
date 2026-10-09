@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T04
+NEXT_TASK: T05
 
 ## BUILD_CAPABILITY
 full
@@ -25,7 +25,7 @@ full
 - [x] T01 - Check and prepare the Flutter/Android toolchain
 - [x] T02 - Create the Flutter project and Android basics
 - [x] T03 - Add dependencies
-- [ ] T04 - Folder structure and lint rules
+- [x] T04 - Folder structure and lint rules
 - [ ] T05 - Theme system (colors, text styles, light/dark)
 - [ ] T06 - Constants, validators, exceptions, utils
 - [ ] T07 - Shared reusable widgets
@@ -75,9 +75,14 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- lib/core/: themes, constants, utilities, errors and router.
+- lib/data/: models, local/remote datasources and repositories.
+- lib/features/{auth,tasks,suggested,audio,video,profile,focus,home}/{cubit,view,widgets}: feature state/UI/components.
+- lib/shared/widgets/: common UI; empty planned folders tracked with .gitkeep until filled.
+- analysis_options.yaml: Flutter lints plus const, avoid_print and package-import rules.
 - pubspec.yaml/lock: resolved runtime/test/media/storage packages; assets/audio, video, images prepared.
 - tool/native_qa.dart: separate actual-touch native dependency verification entrypoint; no production debug controls.
-- lib/main.dart: minimal FocusDesk application; test/widget_test.dart: native scaffold widget smoke test.
+- lib/main.dart: production entrypoint; lib/app.dart: FocusDeskApp root; test/widget_test.dart: app smoke test.
 - android/: Android com.focusdesk.focusdesk configuration; main manifest Internet permission and cleartext disabled.
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
@@ -115,4 +120,5 @@ full
 
 
 - Resident native QA Flutter run session: 17200, target tool/native_qa.dart. Use R to restart after source changes; current app displays production placeholder via QA button.
+
 
