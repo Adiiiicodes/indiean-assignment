@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focusdesk/app.dart';
 import 'package:focusdesk/bootstrap.dart';
 import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/errors/app_exception.dart';
 import 'package:focusdesk/data/datasources/local/hive_service.dart';
+import 'package:focusdesk/core/constants/app_constants.dart';
+import 'package:focusdesk/data/datasources/local/prefs_service.dart';
 import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
 import 'package:mocktail/mocktail.dart';
@@ -17,6 +20,33 @@ class _MockHiveService extends Mock implements HiveService {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'dependencies configure and preserve the injected Dio adapter',
+    () async {
+      SharedPreferences.setMockInitialValues({});
+      final preferences = await SharedPreferences.getInstance();
+      final dio = Dio();
+      final adapter = dio.httpClientAdapter;
+      final dependencies = AppDependencies(
+        prefs: PrefsService(preferences),
+        hive: HiveService(),
+        dio: dio,
+      );
+      expect(dependencies.dio, same(dio));
+      expect(dependencies.dio.httpClientAdapter, same(adapter));
+      expect(dependencies.dio.options.baseUrl, AppConstants.apiBaseUrl);
+      expect(
+        dependencies.dio.options.connectTimeout,
+        AppConstants.networkTimeout,
+      );
+      expect(
+        dependencies.dio.options.receiveTimeout,
+        AppConstants.networkTimeout,
+      );
+      dio.close(force: true);
+    },
+  );
 
   test('bootstrap waits for Hive and uses the supplied preferences', () async {
     final hive = _MockHiveService();

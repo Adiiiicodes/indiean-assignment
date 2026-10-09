@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:focusdesk/bootstrap.dart';
@@ -28,6 +29,7 @@ class FocusDeskApp extends StatelessWidget {
         RepositoryProvider<HiveService>.value(value: dependencies.hive),
         RepositoryProvider<AuthRepository>.value(value: dependencies.auth),
         RepositoryProvider<TaskRepository>.value(value: dependencies.tasks),
+        RepositoryProvider<Dio>.value(value: dependencies.dio),
       ],
       child: MultiBlocProvider(
         providers: [
