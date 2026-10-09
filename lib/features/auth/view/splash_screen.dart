@@ -53,7 +53,7 @@ class _SplashScreenState extends State<SplashScreen>
     }
     if (!mounted) return;
     await _minimumElapsed.future;
-    if (!mounted) return;
+    if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
     final route = !checkFailed && auth?.state is Authenticated
         ? Routes.home
         : Routes.login;

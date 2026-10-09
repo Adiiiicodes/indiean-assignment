@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T14
+NEXT_TASK: T15
 
 ## BUILD_CAPABILITY
 full
@@ -35,7 +35,7 @@ full
 - [x] T11 - AuthCubit and states
 - [x] T12 - Splash screen with session redirect
 - [x] T13 - Login screen
-- [ ] T14 - Sign-up screen
+- [x] T14 - Sign-up screen
 - [ ] T15 - Auth flow integration check
 - [ ] T16 - Task model and priority enum
 - [ ] T17 - Task local datasource and repository
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- features/auth/view/signup_screen.dart: keyboard-safe validated signup, confirmation, duplicate feedback, loading/back guards and correct Login/Home navigation; test/features/auth/signup_screen_test.dart.
 - features/auth/view/login_screen.dart: validated keyboard-safe Login, demo autofill, loading/failure feedback and guarded stack-clearing navigation; test/features/auth/login_screen_test.dart.
 - features/auth/view/splash_screen.dart: animated themed brand, minimum display timer and session redirect; dedicated timing/disposal/widget checks.
 - features/auth/cubit/{auth_state,auth_cubit}.dart: shared app-level authentication transitions, friendly failures and lifecycle/duplicate guards; test/features/auth and native Cubit QA gallery.
@@ -138,7 +139,8 @@ full
 
 
 
-- Resident native QA session18822 (tty=true), target tool/native_qa.dart, PID6056; actual Login demo succeeded and Back exited. Hot restart resets QA root; log out via Auth cubit before signup. Device size/font restored720x1280/font1.0.
+- Resident native QA session18822 (tty=true), target tool/native_qa.dart, PID6056; actual signup.t14.20261009@focusdesk.app account created and Home opened via keyboard Done. Hot restart resets QA root; shared real repo retains this session. Device size/font restored720x1280/font1.0.
+
 
 
 

@@ -155,6 +155,21 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a covered splash does not replace a directly opened route', (
+    tester,
+  ) async {
+    final cubit = _SessionCubit(result: const Unauthenticated());
+    await _pumpSplash(tester, cubit);
+    final navigator = Navigator.of(tester.element(find.byType(SplashScreen)));
+    navigator.pushNamed(Routes.home);
+    await tester.pump(AppConstants.splashDuration);
+    await tester.pumpAndSettle();
+    expect(find.text('Home target'), findsOneWidget);
+    expect(find.text('Login target'), findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('disposal cancels navigation while session checking is pending', (
     tester,
   ) async {
