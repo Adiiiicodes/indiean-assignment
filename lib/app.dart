@@ -5,6 +5,8 @@ import 'package:focusdesk/data/datasources/local/hive_service.dart';
 import 'package:focusdesk/data/datasources/local/prefs_service.dart';
 import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
+import 'package:focusdesk/core/router/app_router.dart';
+import 'package:focusdesk/core/router/routes.dart';
 
 class FocusDeskApp extends StatelessWidget {
   const FocusDeskApp({required this.dependencies, super.key});
@@ -25,9 +27,8 @@ class FocusDeskApp extends StatelessWidget {
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
         builder: AppTheme.systemUiBuilder,
-        home: const Scaffold(
-          body: SafeArea(child: Center(child: Text(AppStrings.appName))),
-        ),
+        initialRoute: Routes.splash,
+        onGenerateRoute: AppRouter.onGenerateRoute,
       ),
     );
   }

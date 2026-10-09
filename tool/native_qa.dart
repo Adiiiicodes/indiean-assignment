@@ -8,6 +8,7 @@ import 'package:focusdesk/core/errors/app_exception.dart';
 import 'package:focusdesk/core/errors/exception_mapper.dart';
 import 'package:focusdesk/core/theme/app_colors.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
+import 'package:focusdesk/core/router/app_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -15,6 +16,7 @@ import 'package:uuid/uuid.dart';
 import 'qa/core_qa_screen.dart';
 import 'qa/shared_qa_screen.dart';
 import 'qa/storage_qa_screen.dart';
+import 'qa/router_qa_screen.dart';
 
 Future<void> main() async {
   try {
@@ -51,11 +53,18 @@ class _NativeQaAppState extends State<NativeQaApp> {
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
       builder: AppTheme.systemUiBuilder,
-      home: NativeQaScreen(
-        dependencies: widget.dependencies,
-        onStartupFailure: () => setState(() => _showStartupFailure = true),
-        onOpenProduction: () => setState(() => _showProductionApp = true),
-      ),
+      onGenerateRoute: AppRouter.onGenerateRoute,
+      initialRoute: '/native-qa',
+      onGenerateInitialRoutes: (_) => [
+        MaterialPageRoute<void>(
+          settings: const RouteSettings(name: '/native-qa'),
+          builder: (_) => NativeQaScreen(
+            dependencies: widget.dependencies,
+            onStartupFailure: () => setState(() => _showStartupFailure = true),
+            onOpenProduction: () => setState(() => _showProductionApp = true),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -144,6 +153,15 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const RouterQaScreen(),
+                  ),
+                ),
+                child: const Text('Named routes'),
+              ),
+              const SizedBox(height: 12),
               FilledButton(
                 onPressed: _running ? null : _probeDependencies,
                 child: const Text('Verify native dependencies'),

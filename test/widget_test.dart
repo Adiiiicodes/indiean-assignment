@@ -7,7 +7,7 @@ void main() {
   testWidgets('FocusDesk scaffold opens without an exception', (tester) async {
     final dependencies = await createTestDependencies();
     await tester.pumpWidget(FocusDeskApp(dependencies: dependencies));
-    expect(find.text('FocusDesk'), findsOneWidget);
+    expect(find.text('FocusDesk'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 }
