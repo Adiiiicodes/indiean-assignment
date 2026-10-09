@@ -9,6 +9,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
+import 'qa/core_qa_screen.dart';
+
 void main() => runApp(const NativeQaApp());
 
 class NativeQaApp extends StatefulWidget {
@@ -128,6 +130,13 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
                   ),
                 ),
                 child: const Text('Theme gallery'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const CoreQaScreen()),
+                ),
+                child: const Text('Core validators and utilities'),
               ),
               const SizedBox(height: 12),
               OutlinedButton(
