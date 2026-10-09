@@ -40,6 +40,7 @@ import 'qa/video_states_qa_screen.dart';
 import 'qa/theme_settings_qa_screen.dart';
 import 'qa/focus_repository_qa_screen.dart';
 import 'qa/timer_qa_screen.dart';
+import 'qa/focus_screen_qa_screen.dart';
 
 import 'package:focusdesk/data/repositories/focus_repository.dart';
 
@@ -139,28 +140,32 @@ class _NativeQaAppState extends State<NativeQaApp> {
             ),
           ),
         ],
-        child: BlocBuilder<ThemeCubit, ThemeState>(
-          builder: (context, themeState) => MaterialApp(
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: themeState.mode,
-            builder: AppTheme.systemUiBuilder,
-            onGenerateRoute: AppRouter.onGenerateRoute,
-            initialRoute: '/native-qa',
-            onGenerateInitialRoutes: (_) => [
-              MaterialPageRoute<void>(
-                settings: const RouteSettings(name: '/native-qa'),
-                builder: (_) => NativeQaScreen(
-                  dependencies: widget.dependencies,
-                  onStartupFailure: () =>
-                      setState(() => _showStartupFailure = true),
-                  onOpenProduction: _openProduction,
-                  onOpenSlowTasks: () => _openProduction(slowTasks: true),
-                  onOpenFailedTasks: () => _openProduction(failTasks: true),
+        child: AudioLifecycleBinding(
+          repository: widget.dependencies.audio,
+          serviceFactory: widget.dependencies.audioPlayerFactory,
+          child: BlocBuilder<ThemeCubit, ThemeState>(
+            builder: (context, themeState) => MaterialApp(
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.light,
+              darkTheme: AppTheme.dark,
+              themeMode: themeState.mode,
+              builder: AppTheme.systemUiBuilder,
+              onGenerateRoute: AppRouter.onGenerateRoute,
+              initialRoute: '/native-qa',
+              onGenerateInitialRoutes: (_) => [
+                MaterialPageRoute<void>(
+                  settings: const RouteSettings(name: '/native-qa'),
+                  builder: (_) => NativeQaScreen(
+                    dependencies: widget.dependencies,
+                    onStartupFailure: () =>
+                        setState(() => _showStartupFailure = true),
+                    onOpenProduction: _openProduction,
+                    onOpenSlowTasks: () => _openProduction(slowTasks: true),
+                    onOpenFailedTasks: () => _openProduction(failTasks: true),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -276,6 +281,15 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const FocusScreenQaScreen(),
+                  ),
+                ),
+                child: const Text('QA Focus screen'),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(

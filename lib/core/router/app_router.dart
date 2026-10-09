@@ -36,7 +36,8 @@ abstract final class AppRouter {
         video: arguments,
       ),
       Routes.profile => const ProfileScreen(),
-      Routes.focus => FocusScreen(task: arguments),
+      Routes.focus when arguments == null || arguments is TaskModel =>
+        ScaffoldMessenger(child: FocusScreen(task: arguments as TaskModel?)),
       _ => const _UnknownRouteScreen(),
     };
     return PageRouteBuilder<dynamic>(

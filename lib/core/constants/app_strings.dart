@@ -181,6 +181,25 @@ abstract final class AppStrings {
   static const mockAuthNote =
       'Demo authentication · data stored on this device';
   static const focusSession = 'Focus session';
+  static const focusMusic = 'Focus music';
+  static const playMusicWithSession = 'Play music with session';
+  static const focusReady = 'Make a little room for focus.';
+  static const focusRunning = 'One task. One step at a time.';
+  static const focusPaused = 'Take a breath. Resume when ready.';
+  static const focusSaving = 'Saving your focus session…';
+  static const focusFinished = 'Your focus time is saved.';
+  static const focusEnded = 'Session ended.';
+  static const focusUnsaved = 'Your session needs to be saved. Try again.';
+  static const focusMusicReady = 'Your focus soundtrack is ready.';
+  static const focusResetTitle = 'Reset this session?';
+  static const focusResetMessage =
+      'This timer will restart. This session will not be saved.';
+  static const greatFocus = 'Great focus!';
+  static const markFocusedTaskDone = 'Mark this task as done?';
+  static const yes = 'Yes';
+  static const no = 'No';
+  static String focusSummary(int seconds) =>
+      'Focused for ${seconds ~/ 60} min ${seconds % 60} sec. Session saved.';
   static const chooseTask = 'Choose a task to get started';
   static const start = 'Start';
   static const resume = 'Resume';
@@ -190,7 +209,8 @@ abstract final class AppStrings {
   static const focusCompleteMessage =
       'Your session is saved. Ready to mark this task done?';
   static const leaveFocusTitle = 'Leave this focus session?';
-  static const leaveFocusMessage = 'Your focus time so far will be saved.';
+  static const leaveFocusMessage =
+      'Sessions longer than ten seconds are saved before you leave.';
   static const leave = 'Leave';
   static const stay = 'Stay';
   static const focusMinutesToday = 'Focus minutes today';

@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T42
+NEXT_TASK: T43
 
 ## BUILD_CAPABILITY
 full
@@ -63,7 +63,7 @@ full
 - [x] T39 - Profile / Settings screen
 - [x] T40 - Focus session model, datasource, repository
 - [x] T41 - TimerCubit
-- [ ] T42 - Focus Session screen UI
+- [x] T42 - Focus Session screen UI
 - [ ] T43 - Stats card on Home and Profile
 - [ ] T44 - Responsive and accessibility audit
 - [ ] T45 - Motion polish, app icon and native splash
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- FocusScreen owns Timer with persisted durations, responsive Countdown and confirmed reset/leave. FocusMusicPlayer serializes cancellation-aware shared Audio controls; FocusCompletionDialog waits accepted save and verifies Yes task update/Retry.11 full widget flows +2 bad-payload router cases. Native QA shared Audio lifecycle wrapper and production/isolated3sec screen probe.
 - TimerCubit/TimerState: injectable periodic ticker/clock/duration converter,25/15/45 configuration, real elapsed/fractional segment accounting, pause/resume/reset/finish, completed/partial session logging with pending retry-safe UUID and success revision.22 unit/bloc +4 realHive timer tests. TimerQaScreen owns real clock/Cubit for production durations and isolated3second completion probe, readback/coldrestore/cleanup.
 - FocusSessionModel/FocusStats immutable JSON/Equatable; FocusLocalDatasource validates JSON and keyed identity in focus_sessions. FocusRepository queues retry-safe ID saves/clear and consistent reads; local-day grouping, summed-second flooring, done task updated-day count and unique positive-session streak. AppDependencies/app global FocusRepository; Profile clears through its queue.31 model/Hive tests +4 real DI/Profile tests; native FocusRepositoryQaScreen verifies save/read/cold restore/clear.
 - ProfileRepository + ProfileCubit coordinate name edits, account-safe task/session clearing, and stop-before-logout. ProfileScreen/NameDialog provide avatar, validated edits, shared theme/duration selectors, About and confirmed actions. App-scoped lazy Profile provider refreshes Task/Suggested caches. AudioLifecycleBinding.stopIfCreated avoids unused decoder creation; stopForLogout propagates errors before ending auth. Tests:7 repository,18 Cubit,8 Profile journeys,2 lazy/existing audio stop cases; old router/Home/journey providers updated.
@@ -199,8 +200,10 @@ full
 
 
 
-- Production APK PID3636, Tasks empty/Focus Tester, System/default25; focus sessions0 after timer probe cleanup. No resident Flutter tty. Final172-file format/analyze/664tests and production debug25.9s passed. Device720x1280/font1.0/OSlight/userrotationfree0/ignoreOrientationRequestfalse. Actual tab labels include newline Tab n of m.
-- 03:30IST10Oct checkpoint:40/52 committed,12remaining;2verifiedcommits/30min. T40native repository flows/638tests passed, finalproduction startup pending. ETA3–5h/completion06:30–08:30IST; next checkpoint04:00IST.
+- Production APK PID5161, one Done task Prepare focus demo/Focus Tester, System/default25; focus sessions3 (actual3,3,124seconds; completedtrue,true,false) coldrestored. No resident Flutter tty. Final177-file format/analyze/677tests and production debug27.8s passed. Device720x1280/font1.0/OSlight/userrotationfree0/ignoreOrientationRequestfalse. Actual tab labels include newline Tab n of m.
+- 04:00IST10Oct checkpoint:42/52 committed,10remaining;2verifiedcommits/30min. T42full677tests/timer/music/completion/coldrestore passed; finalproduction small-screen checks pending. ETA2.5–4h/completion06:30–08:00IST; next checkpoint04:30IST.
+
+
 
 
 

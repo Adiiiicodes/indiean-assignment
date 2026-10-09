@@ -10,6 +10,7 @@ import 'package:focusdesk/core/router/app_router.dart';
 import 'package:focusdesk/core/router/routes.dart';
 import 'package:focusdesk/data/models/task_model.dart';
 import 'package:focusdesk/data/repositories/video_repository.dart';
+import 'package:focusdesk/data/repositories/focus_repository.dart';
 import 'package:focusdesk/features/audio/view/music_screen.dart';
 import 'package:focusdesk/features/audio/cubit/audio_cubit.dart';
 import 'package:focusdesk/features/audio/cubit/audio_state.dart';
@@ -53,6 +54,8 @@ class _FrozenThemeCubit extends MockCubit<ThemeState> implements ThemeCubit {}
 class _FrozenSettingsCubit extends MockCubit<SettingsState>
     implements SettingsCubit {}
 
+class _FocusRepository extends Mock implements FocusRepository {}
+
 Widget _host(GlobalKey<NavigatorState> navigatorKey, {TaskModel? task}) {
   final auth = _FrozenAuthCubit();
   when(() => auth.state).thenReturn(const AuthInitial());
@@ -64,6 +67,7 @@ Widget _host(GlobalKey<NavigatorState> navigatorKey, {TaskModel? task}) {
   addTearDown(auth.close);
   addTearDown(tasks.close);
   final audio = _FrozenAudioCubit();
+  when(() => audio.isClosed).thenReturn(false);
   when(() => audio.state).thenReturn(
     AudioState(
       status: AppPlayerStatus.paused,
@@ -72,6 +76,7 @@ Widget _host(GlobalKey<NavigatorState> navigatorKey, {TaskModel? task}) {
     ),
   );
   when(() => audio.init()).thenAnswer((_) async {});
+  when(() => audio.pause()).thenAnswer((_) async {});
   addTearDown(audio.close);
   final profile = _FrozenProfileCubit();
   when(() => profile.state).thenReturn(const ProfileState());
@@ -82,19 +87,22 @@ Widget _host(GlobalKey<NavigatorState> navigatorKey, {TaskModel? task}) {
   addTearDown(profile.close);
   addTearDown(theme.close);
   addTearDown(settings.close);
-  return MultiBlocProvider(
-    providers: [
-      BlocProvider<AuthCubit>.value(value: auth),
-      BlocProvider<TaskCubit>.value(value: tasks),
-      BlocProvider<AudioCubit>.value(value: audio),
-      BlocProvider<ProfileCubit>.value(value: profile),
-      BlocProvider<ThemeCubit>.value(value: theme),
-      BlocProvider<SettingsCubit>.value(value: settings),
-    ],
-    child: MaterialApp(
-      navigatorKey: navigatorKey,
-      initialRoute: Routes.splash,
-      onGenerateRoute: AppRouter.onGenerateRoute,
+  return RepositoryProvider<FocusRepository>.value(
+    value: _FocusRepository(),
+    child: MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>.value(value: auth),
+        BlocProvider<TaskCubit>.value(value: tasks),
+        BlocProvider<AudioCubit>.value(value: audio),
+        BlocProvider<ProfileCubit>.value(value: profile),
+        BlocProvider<ThemeCubit>.value(value: theme),
+        BlocProvider<SettingsCubit>.value(value: settings),
+      ],
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        initialRoute: Routes.splash,
+        onGenerateRoute: AppRouter.onGenerateRoute,
+      ),
     ),
   );
 }
@@ -202,6 +210,22 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     expect(tester.takeException(), isNull);
   });
+
+  for (final argument in <Object>['invalid', 42]) {
+    testWidgets('focus argument $argument uses the friendly fallback', (
+      tester,
+    ) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(_host(navigatorKey));
+      navigatorKey.currentState!.pushNamed(Routes.focus, arguments: argument);
+      await tester.pumpAndSettle();
+      expect(find.byType(FocusScreen), findsNothing);
+      expect(find.text(AppStrings.notFoundTitle), findsWidgets);
+      expect(find.text(AppStrings.returnHome), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('typed video player route preserves its model and settings', (
     tester,
