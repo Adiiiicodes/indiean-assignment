@@ -7,7 +7,7 @@ plugins {
 android {
     namespace = "com.focusdesk.focusdesk"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.1.12297006"
+    ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
