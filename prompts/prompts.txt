@@ -1,0 +1,604 @@
+################################################################################
+# FOCUSDESK - AUTONOMOUS BUILD PROMPTS
+# Execute tasks strictly in order, T00 first. NEVER edit this file.
+#
+# STANDARD PROTOCOL (applies to EVERY task below; full text lives in context.md
+# once T00 has created it):
+#   1. Read context.md, memory.md, and the last ~80 lines of logs.md.
+#   2. Do the task. Keep changes limited to the task's scope.
+#   3. Verify: dart format ., flutter analyze, flutter test (and any extra
+#      verification listed in the task).
+#   4. If verification fails: fix and retry, max 4 attempts, then log BLOCKED,
+#      use the simplest fallback, and continue.
+#   5. Append an entry to logs.md. Update memory.md (checklist, file map,
+#      decisions, NEXT_TASK).
+#   6. git add -A and commit with the task's COMMIT message.
+#   7. Continue to the next task immediately. Never ask the human anything.
+################################################################################
+
+
+##### T00 | Create control files (context.md, memory.md, logs.md) #####
+PHASE: 0
+DEPENDS: none
+PROMPT:
+You are the autonomous builder of a Flutter Android app called FocusDesk. This is bootstrap task T00. The repo folder currently contains MEGA_PLAN.md and prompts.txt. Read MEGA_PLAN.md fully, then create three files in the repo root.
+
+1) Create context.md with EXACTLY these sections and content:
+
+# FocusDesk - Context (stable truth; read before every task)
+
+## Product
+FocusDesk is a task manager built around focus sessions. Users manage tasks (local CRUD), import suggested tasks from a public API (DummyJSON), start a Focus Session on a task (countdown timer + focus music), and watch short productivity videos. Built as an internship technical assignment (Flutter, Android). Pitch: "FocusDesk helps you finish tasks by turning each one into a focus session: pick a task, start a timer, get a soundtrack, and track what you completed."
+
+## Assignment requirements (must all be satisfied)
+Auth (login/sign-up with validation, mocked), Home list with search/filter, REST API via Dio, local CRUD, consistent state management (flutter_bloc Cubit), navigation across auth/home/details/add-edit/media/profile, local storage, loading/success/validation/empty/error states, responsive UI without overflow on common Android sizes. Audio player screen: 3 tracks, play, pause, seek, previous, next, position and duration, title/artwork, states loading/playing/paused/completed/error. Video player screen: at least 1 video, play/pause, seek/progress, replay, duration and position, portrait OK, fullscreen bonus, states loading/buffering/completed/error. Centralized theme/colors/text styles, model classes with JSON parsing, null-safety, clean folders, exception handling, meaningful git commits, README, installable APK. Bonus targeted: dark/light theme, fullscreen video, debounced search, pull-to-refresh, pagination, repository pattern and DI, unit/widget tests, background audio (optional, late).
+
+## Stack (do not swap packages without logging a decision)
+State: flutter_bloc + equatable (one Cubit per feature). Network: dio. Local storage: hive + hive_flutter (tasks and focus sessions, stored as JSON strings in boxes, NO code generation) and shared_preferences (session, users, theme, settings). Audio: just_audio. Video: video_player + chewie. Misc: intl, uuid. Dev: bloc_test, mocktail, flutter_launcher_icons, flutter_native_splash. Dependency injection: plain constructor injection through RepositoryProvider/BlocProvider (no get_it). Routing: named routes via a central AppRouter (onGenerateRoute). Add packages with `flutter pub add` (do not hard-pin versions manually).
+
+## Architecture
+lib/
+  core/ { theme/ (app_colors.dart, app_text_styles.dart, app_theme.dart), constants/ (app_strings.dart, app_constants.dart, media_urls.dart), utils/ (validators.dart, debouncer.dart, date_utils.dart), errors/ (app_exception.dart, failure mapping), router/ (app_router.dart, routes.dart) }
+  data/ { models/, datasources/ { local/, remote/ }, repositories/ }
+  features/ { auth, tasks, suggested, audio, video, profile, focus, home }  each with cubit/ (if needed), view/, widgets/
+  shared/widgets/ (AppButton, AppTextField, EmptyView, ErrorView, LoadingView, SectionHeader, PriorityChip ...)
+  main.dart, app.dart
+Rules: UI never touches datasources directly; UI -> Cubit -> Repository -> Datasource. Repositories and services are abstract-friendly so tests can use fakes. Audio goes through an AudioPlayerService wrapper (interface + just_audio implementation).
+
+## Conventions
+Null-safe Dart, small files, readable names, no hard-coded colors/text styles/strings in widgets (use core/theme and core/constants), const constructors where possible, no print() (use debugPrint sparingly), all async calls wrapped with error handling that maps to AppException. Material 3, seed color indigo/violet, 16px card radius, light and dark themes. Every screen handles loading, empty, error, and success. Use SafeArea, Expanded/Flexible, SingleChildScrollView, and LayoutBuilder so nothing overflows at 320x568 up to tablets, and at text scale 1.3.
+
+## Test credentials (mock auth)
+Seeded demo user: demo@focusdesk.app / Focus@123 (name: Demo User). Sign-up stores new users locally in shared_preferences (mock only, not secure; document this in the README).
+
+## Media (verify with curl -I before relying on them; log results)
+Audio (3 tracks): https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3 ("Lo-fi Drift"), https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3 ("Ambient Bloom"), https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3 ("Piano Focus"). Titles are display names only.
+Video: https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4 and https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4 (display names "Deep Work Basics", "Beat Procrastination"). If any URL fails, find an alternative public https sample and log it.
+Fallbacks: bundle 1 small local audio and 1 small local video in assets/ if downloading is possible.
+REST API: https://dummyjson.com/todos?limit=20&skip=0 returns {"todos":[{"id":1,"todo":"...","completed":false,"userId":1}],"total":254,"skip":0,"limit":20}.
+
+## TASK PROTOCOL (applies to every task in prompts.txt)
+1. Read context.md, memory.md, tail of logs.md. NEXT_TASK in memory.md says which task to run.
+2. Locate that task's block in prompts.txt and execute it fully. Stay in scope.
+3. Verify: `dart format .`, `flutter analyze` (must have 0 errors and 0 warnings; fix infos when cheap), `flutter test` (all pass), plus any task-specific verification. Adapt to BUILD_CAPABILITY in memory.md.
+4. On failure: diagnose, fix, re-verify, up to 4 attempts. Then log BLOCKED, choose the simplest fallback that still meets the acceptance criteria, and continue. Never weaken or delete tests just to pass. Never loop forever.
+5. Append to logs.md using the log format below.
+6. Update memory.md: tick the checklist, update File Map, Decisions, Assumptions, Known Issues, and set NEXT_TASK to the following task (or DONE).
+7. Commit: `git add -A && git commit -m "<task COMMIT message>"`.
+8. Immediately continue to the next task. Never ask the human questions or wait for approval; make reasonable assumptions and record them in memory.md.
+9. Never edit prompts.txt or MEGA_PLAN.md. Never put secrets in the repo.
+
+## Log entry format (logs.md, append only)
+### [T##] <title> - <STATUS: DONE | DONE_WITH_NOTES | BLOCKED>
+- Time: <timestamp>
+- Summary: what was built/changed (2-5 lines)
+- Files: created/modified list
+- Commands & results: key commands with pass/fail
+- Retries: number and what fixed it
+- Notes/Assumptions/Next: anything relevant
+
+## Definition of done (project)
+All 7 screens working and connected; analyze clean; tests passing; release APK built into release/ (or Human To-Do recorded); README complete; audio and video features per requirements; clean git history.
+
+2) Create memory.md with these sections: "# FocusDesk - Memory (living state)"; "## NEXT_TASK" containing exactly `NEXT_TASK: T01`; "## BUILD_CAPABILITY" (value placeholder `unknown`); "## Environment" (empty, to be filled by T01); "## Task Checklist" listing T00 to T51 as markdown checkboxes with their titles taken from prompts.txt headings (T00 checked); "## File Map" (path: purpose, empty); "## Decisions" ; "## Assumptions" ; "## Known Issues / BLOCKED items" ; "## Human To-Do (things the human must do after the build)" ; "## Useful Commands".
+
+3) Create logs.md starting with "# FocusDesk - Build Log" and a first entry for T00 in the log format.
+
+Finally run `git init` if the folder is not yet a git repo (default branch main), then commit.
+DONE WHEN: context.md, memory.md, logs.md exist with the specified content; NEXT_TASK is T01; first commit exists.
+COMMIT: "chore: add agent control files (context, memory, logs)"
+
+
+##### T01 | Check and prepare the Flutter/Android toolchain #####
+PHASE: 0
+DEPENDS: T00
+PROMPT:
+Inspect the environment: run `flutter --version`, `dart --version`, `java -version`, `echo $ANDROID_HOME $ANDROID_SDK_ROOT`, `which adb sdkmanager`, `flutter doctor -v`.
+If Flutter is missing, install it: `git clone --depth 1 -b stable https://github.com/flutter/flutter.git $HOME/flutter`, add $HOME/flutter/bin to PATH for this session (and note the export line in memory.md Useful Commands), run `flutter precache --android` and `flutter config --no-analytics`.
+If the Android SDK is missing, try to install command-line tools, then `sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"` (use versions that exist), accept licenses with `yes | flutter doctor --android-licenses`, and set `flutter config --android-sdk <path>`. Install a JDK 17 if Java is missing or older.
+Decide BUILD_CAPABILITY and record it in memory.md: `full` (can run `flutter build apk`), `analyze-and-test` (flutter works, no Android SDK/no network for it), or `code-only` (no Flutter). Record Flutter and Dart versions, Java version, and SDK paths under Environment. If capability is below `full`, add to Human To-Do: "Run `flutter build apk --release` locally and copy the APK to release/".
+In `code-only` mode, all later tasks must still write correct code and add the exact verification commands to Human To-Do instead of running them.
+DONE WHEN: memory.md has BUILD_CAPABILITY, versions, and environment notes; `flutter --version` works unless capability is code-only.
+COMMIT: "chore: record toolchain environment"
+
+
+##### T02 | Create the Flutter project and Android basics #####
+PHASE: 0
+DEPENDS: T01
+PROMPT:
+In the repo root (do NOT create a subfolder) run: `flutter create --org com.focusdesk --project-name focusdesk --platforms android .` (the folder already has other files; that is fine).
+Then: add a proper .gitignore (Flutter standard plus `*.apk` excluded EXCEPT keep release/ APK: use `!release/*.apk`), set the app label to "FocusDesk" in AndroidManifest, make sure `<uses-permission android:name="android.permission.INTERNET"/>` exists in android/app/src/main/AndroidManifest.xml (main manifest, not only debug/profile), keep cleartext traffic disabled, and set the application id to com.focusdesk.focusdesk (or whatever flutter create produced; keep consistent). Delete the default counter-app test content (replace test/widget_test.dart with a trivial passing placeholder you will replace later) and replace lib/main.dart with a minimal MaterialApp showing "FocusDesk".
+Verify with `flutter analyze` and `flutter test`. If BUILD_CAPABILITY is full, also run `flutter build apk --debug` to prove the toolchain builds, and log the result (and the time it took).
+DONE WHEN: project analyzes cleanly, placeholder test passes, debug build succeeds if capability is full.
+COMMIT: "chore: scaffold flutter android project"
+
+
+##### T03 | Add dependencies #####
+PHASE: 0
+DEPENDS: T02
+PROMPT:
+Add runtime packages with `flutter pub add`: flutter_bloc, equatable, dio, hive, hive_flutter, shared_preferences, just_audio, video_player, chewie, intl, uuid. Add dev packages with `flutter pub add --dev`: bloc_test, mocktail, flutter_launcher_icons, flutter_native_splash. Do not pin versions manually; let pub resolve. If a resolution conflict occurs, adjust minimal constraints and log it.
+Clean pubspec.yaml: add a real description ("FocusDesk - focus-session task manager"), version 1.0.0+1, remove boilerplate comments, declare `assets:` folders you will use (assets/audio/, assets/video/, assets/images/) and create those folders with a `.gitkeep` file each (an empty assets folder in pubspec fails builds, so make sure each declared folder exists).
+Check Android requirements for the added packages (minSdkVersion, compileSdk) and fix android/app/build.gradle(.kts) accordingly.
+Run `flutter pub get`, `flutter analyze`. If capability is full, run `flutter build apk --debug` to catch native/gradle issues early.
+DONE WHEN: pub get succeeds; analyze clean; debug build (if capable) succeeds.
+COMMIT: "chore: add dependencies and asset folders"
+
+
+##### T04 | Folder structure and lint rules #####
+PHASE: 0
+DEPENDS: T03
+PROMPT:
+Create the lib/ folder structure exactly as described in context.md Architecture (empty folders may hold a `.gitkeep` until filled; remove .gitkeep as files are added later). Create lib/app.dart (FocusDeskApp widget placeholder) and make main.dart call runApp(const FocusDeskApp()). Tighten analysis_options.yaml: include flutter_lints, enable rules prefer_const_constructors, prefer_const_declarations, avoid_print, always_use_package_imports, require_trailing_commas is optional. Fix any resulting lints.
+Update memory.md File Map with the folder purposes.
+DONE WHEN: structure exists, analyze clean, app still runs the placeholder.
+COMMIT: "chore: project structure and lint rules"
+
+
+##### T05 | Theme system (colors, text styles, light/dark) #####
+PHASE: 1
+DEPENDS: T04
+PROMPT:
+Implement lib/core/theme/: app_colors.dart (seed color indigo/violet, semantic colors for priority high/medium/low, success, warning, error, gradient helpers), app_text_styles.dart (headline, title, body, label, caption styles defined once), app_theme.dart exposing `AppTheme.light` and `AppTheme.dark` using Material 3 `ColorScheme.fromSeed`, with consistent shapes (16px radius cards, 12px inputs/buttons), filled/outlined button themes, InputDecorationTheme, CardTheme, AppBarTheme, SnackBarTheme (floating), NavigationBarTheme, ChipTheme. No widget should need hard-coded colors after this task.
+Wire the theme into lib/app.dart with themeMode system for now (ThemeCubit comes in T38).
+Add a small widget test that pumps the app in both themes without exceptions.
+DONE WHEN: both themes build; test passes; analyze clean.
+COMMIT: "feat(core): centralized material 3 theme with light and dark"
+
+
+##### T06 | Constants, validators, exceptions, utils #####
+PHASE: 1
+DEPENDS: T05
+PROMPT:
+Implement: lib/core/constants/app_strings.dart (all user-facing strings: labels, hints, errors, empty-state messages, button texts), app_constants.dart (storage keys, API base URL, timeouts, debounce duration 400ms, default focus durations 25/15/45), media_urls.dart (audio and video URLs from context.md). lib/core/utils/validators.dart (email regex, password min 8 chars with at least one letter and one number, required text, name min 2 chars, task title min 3 max 80, description max 300, confirm-password match) returning String? messages, debouncer.dart (Timer-based), date_utils.dart (intl formatting: "Mon, 12 Oct", relative "Today/Tomorrow/Overdue"). lib/core/errors/app_exception.dart: sealed/class hierarchy AppException(message) with NetworkException, TimeoutAppException, ServerException(statusCode), StorageException, ValidationException, MediaException, UnknownException, plus a helper that maps DioException and generic errors to AppException with friendly messages.
+Write unit tests for validators (valid, invalid, edge) and for the DioException mapping.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(core): constants, validators, exceptions and utils with tests"
+
+
+##### T07 | Shared reusable widgets #####
+PHASE: 1
+DEPENDS: T06
+PROMPT:
+Create lib/shared/widgets/: AppButton (filled/outlined variants, loading state, full-width option), AppTextField (label, hint, validator, obscure toggle for passwords, prefix icon, keyboard type, textInputAction), LoadingView (centered progress with optional message), EmptyView (icon, title, message, optional action button), ErrorView (icon, message, Retry button), SectionHeader, PriorityChip (colored by priority, small), AppSnackbar helper (showSuccess/showError/showUndo). All must use theme values only, be overflow-safe, and have const constructors where possible.
+Add widget tests for AppButton loading state, EmptyView, and ErrorView retry callback.
+DONE WHEN: widgets exist and are tested; analyze clean.
+COMMIT: "feat(shared): reusable ui widgets with tests"
+
+
+##### T08 | Local storage services (Hive + SharedPreferences) #####
+PHASE: 1
+DEPENDS: T06
+PROMPT:
+Create lib/data/datasources/local/: `PrefsService` (thin wrapper over SharedPreferences: getString/setString/getBool/setBool/remove/clear with error mapping to StorageException) and `HiveService` (init with Hive.initFlutter, open boxes `tasks` and `focus_sessions` as Box<String> storing JSON strings, helpers to read all/put/delete/clear, StorageException mapping). Both must be constructible with injected dependencies so tests can use in-memory fakes (for SharedPreferences use SharedPreferences.setMockInitialValues in tests; for Hive use a temp directory via Hive.init).
+Write unit tests for both services.
+Create lib/bootstrap.dart with `Future<AppDependencies> bootstrap()` that initializes Flutter binding, Hive, SharedPreferences and returns a container class holding the services (repositories will be added to it in later tasks). main.dart calls bootstrap, shows an error screen if it throws, else runs the app with dependencies passed to FocusDeskApp.
+DONE WHEN: tests pass; app boots through bootstrap.
+COMMIT: "feat(data): local storage services and app bootstrap"
+
+
+##### T09 | Routing and screen placeholders #####
+PHASE: 1
+DEPENDS: T08
+PROMPT:
+Create lib/core/router/routes.dart (route name constants: splash, login, signup, home, taskDetails, taskForm, music, video, profile, focus) and app_router.dart with `AppRouter.onGenerateRoute` supporting arguments (e.g. task id for details, optional task for form, task for focus) and an unknown-route fallback screen. Create minimal placeholder screens (Scaffold with centered title) for every route in the corresponding features/*/view/ folders so navigation can already be exercised. Set initialRoute to splash. Use smooth fade/slide page transitions via PageRouteBuilder or a theme-level PageTransitionsTheme.
+Add a test that navigates to each named route without exception.
+DONE WHEN: all routes resolve; test passes; analyze clean.
+COMMIT: "feat(core): named routing with placeholder screens"
+
+
+##### T10 | User model, auth datasource and repository (mock) #####
+PHASE: 2
+DEPENDS: T09
+PROMPT:
+Create lib/data/models/user_model.dart (id, name, email, createdAt; toJson/fromJson/copyWith/Equatable). Create lib/data/datasources/local/auth_local_datasource.dart using PrefsService: stores registered users list (JSON; password stored as SHA-256 hash via the `crypto` package - add it with `flutter pub add crypto`), the active session user id, and seeds the demo user demo@focusdesk.app / Focus@123 / "Demo User" on first run. Create lib/data/repositories/auth_repository.dart with: signUp(name,email,password), login(email,password), logout(), currentUser(), updateName(name). Throw ValidationException for wrong credentials/duplicate email (friendly messages). Add a fake 600ms delay to simulate network.
+Register repository in AppDependencies and provide via RepositoryProvider in app.dart.
+Write unit tests for the repository (signup, duplicate email, login success/failure, logout, session restore).
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(auth): mock auth repository with local persistence"
+
+
+##### T11 | AuthCubit and states #####
+PHASE: 2
+DEPENDS: T10
+PROMPT:
+Create lib/features/auth/cubit/auth_cubit.dart and auth_state.dart (Equatable). States: AuthInitial, AuthLoading, Authenticated(user), Unauthenticated, AuthFailure(message). Methods: checkSession(), login(), signUp(), logout(), refreshUser(). Provide AuthCubit at app level in app.dart.
+Write bloc_test tests with a fake/mocked repository for every transition including failures.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(auth): auth cubit with tests"
+
+
+##### T12 | Splash screen with session redirect #####
+PHASE: 2
+DEPENDS: T11
+PROMPT:
+Implement the splash screen (features/auth/view/splash_screen.dart): app logo (an Icon in a gradient rounded square), app name, tagline, subtle fade/scale animation, minimum display ~1.2s, calls AuthCubit.checkSession(), then pushReplacement to home if Authenticated else login. Handle unexpected errors by going to login. Use theme styles only.
+Add a widget test with a fake AuthCubit for both redirects.
+DONE WHEN: both redirects verified by test.
+COMMIT: "feat(auth): splash screen with session-based redirect"
+
+
+##### T13 | Login screen #####
+PHASE: 2
+DEPENDS: T12
+PROMPT:
+Implement login_screen.dart: gradient header/brand area, email and password AppTextFields with validators from core, "Forgot password?" (shows a snackbar "Not available in demo"), Login AppButton with loading state bound to AuthCubit, error shown via AppSnackbar, link to Sign Up, hint chip showing demo credentials that autofills the form when tapped. Keyboard-safe and scrollable (no overflow at 320x568 with keyboard). On Authenticated navigate to home (replace stack).
+Widget tests: validation errors appear for empty/invalid input; successful login navigates; failure shows error.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(auth): login screen with validation"
+
+
+##### T14 | Sign-up screen #####
+PHASE: 2
+DEPENDS: T13
+PROMPT:
+Implement signup_screen.dart: name, email, password, confirm password fields with validators, terms-like helper text, Create Account button with loading state, success -> navigate to home, duplicate email error shown inline/snackbar, link back to login. Scrollable and keyboard-safe.
+Widget tests for validation and happy path.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(auth): sign-up screen with validation"
+
+
+##### T15 | Auth flow integration check #####
+PHASE: 2
+DEPENDS: T14
+PROMPT:
+Write a widget-level flow test (using real AuthRepository with mock prefs, fake delays removed via an injectable delay duration) covering: first launch -> splash -> login -> sign up new user -> home placeholder; logout -> login; login with seeded demo user. Fix any issues found. Update memory.md with the auth architecture notes.
+DONE WHEN: flow test passes; full `flutter test` green.
+COMMIT: "test(auth): end-to-end auth flow widget test"
+
+
+##### T16 | Task model and priority enum #####
+PHASE: 3
+DEPENDS: T15
+PROMPT:
+Create lib/data/models/task_model.dart: id (uuid), title, description, priority (enum TaskPriority low/medium/high with label and parsing), dueDate (DateTime?), isDone, createdAt, updatedAt, source (enum local/imported), toJson/fromJson (robust against missing/invalid fields), copyWith, Equatable. Add helper getters isOverdue and isDueToday.
+Unit tests for JSON round trip, defaults on bad data, copyWith, overdue logic.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(tasks): task model with json parsing and tests"
+
+
+##### T17 | Task local datasource and repository #####
+PHASE: 3
+DEPENDS: T16
+PROMPT:
+Create lib/data/datasources/local/task_local_datasource.dart using HiveService (box `tasks`, JSON per task keyed by id) and lib/data/repositories/task_repository.dart exposing: getTasks(), addTask(), updateTask(), deleteTask(id), restoreTask(task) (for undo), toggleDone(id), getById(id), clearAll(). Sort newest first by default. Map failures to StorageException. Register in AppDependencies and provide via RepositoryProvider.
+Unit tests with a temp-directory Hive.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(tasks): hive-backed task repository"
+
+
+##### T18 | TaskCubit with search, filter and undo #####
+PHASE: 3
+DEPENDS: T17
+PROMPT:
+Create features/tasks/cubit/task_cubit.dart and task_state.dart. State fields: status (initial/loading/success/failure), all tasks, search query, status filter (all/pending/done), priority filter (nullable), computed `visibleTasks` getter (filtered and searched, case-insensitive on title and description), error message, last deleted task (for undo). Methods: load(), add(), update(), delete() (keeps lastDeleted), undoDelete(), toggleDone(), setQuery() (the debounce lives in the UI layer via Debouncer, cubit stays synchronous), setStatusFilter(), setPriorityFilter(), clearFilters(). Provide at app level (after auth) and load on login.
+Write bloc_test tests with a fake repository for load success/failure, CRUD, undo, search and filter combinations.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(tasks): task cubit with search, filters and undo"
+
+
+##### T19 | Home shell with bottom navigation #####
+PHASE: 3
+DEPENDS: T18
+PROMPT:
+Implement features/home/view/home_shell.dart: Material 3 NavigationBar with four destinations - Tasks, Music, Videos, Profile - using IndexedStack so tab state is preserved. Each tab currently shows its placeholder (real screens arrive in later tasks). Handle Android back button: from a non-first tab go to the first tab before exiting. Make it responsive: NavigationBar on phones; NavigationRail when width >= 720.
+Widget test for tab switching and responsive switch between bar and rail.
+DONE WHEN: tests pass.
+COMMIT: "feat(home): bottom navigation shell with responsive rail"
+
+
+##### T20 | Tasks tab UI (header, search, filters, list) #####
+PHASE: 3
+DEPENDS: T19
+PROMPT:
+Implement features/tasks/view/tasks_tab.dart: gradient header with greeting by time of day and the user's first name (from AuthCubit), a debounced search field (Debouncer from core, 400ms) with clear button, filter chips row (All/Pending/Done and priority chips; horizontally scrollable), task list with pull-to-refresh, loading view, empty view (two variants: no tasks yet with CTA "Add a task"; no results for current filters with "Clear filters"), error view with retry, and a FloatingActionButton to add a task. List uses a ListView.builder with TaskCard widgets (T21 builds the card; until then use ListTile placeholder, replaced in T21). Swipe-to-delete with Dismissible and an undo SnackBar calling TaskCubit.undoDelete.
+Widget tests with a fake TaskCubit: loading, empty, no-results, list, error states.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(tasks): tasks tab with search, filters and states"
+
+
+##### T21 | TaskCard widget with Hero and checkbox #####
+PHASE: 3
+DEPENDS: T20
+PROMPT:
+Create features/tasks/widgets/task_card.dart: rounded card with leading animated checkbox (toggle done), title (strikethrough when done), optional description (max 2 lines, ellipsis), priority chip, due-date chip colored for overdue/today, imported badge for source=imported, trailing chevron. Hero tag on the title/card keyed by task id. onTap opens details; onToggle calls cubit. Replace the placeholder in the tasks tab. Overflow-safe on narrow screens.
+Widget tests: renders fields, strikethrough when done, toggle callback.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(tasks): task card widget"
+
+
+##### T22 | Add/Edit task form screen #####
+PHASE: 3
+DEPENDS: T21
+PROMPT:
+Implement features/tasks/view/task_form_screen.dart: single screen for create and edit (optional TaskModel argument). Fields: title (required, validators), description (multiline, max 300 with counter), priority selector (SegmentedButton), due date (date picker, clearable), Done switch (edit only). Save button with loading, validation messages, discard-changes confirmation dialog on back when dirty, success snackbar and pop. Autofocus title on create. Scrollable and keyboard-safe.
+Widget tests: validation errors; create calls cubit.add; edit prefilled and calls cubit.update.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(tasks): add/edit task form"
+
+
+##### T23 | Task details screen #####
+PHASE: 3
+DEPENDS: T22
+PROMPT:
+Implement features/tasks/view/task_details_screen.dart: loads task by id from TaskCubit state (reactive to updates), shows Hero title, priority chip, status, due date with relative text, created/updated timestamps, full description, actions: Mark done/undone, Edit (opens form), Delete (confirmation dialog, then pop with undo snackbar on the previous screen), and a prominent "Start Focus" button that navigates to the focus route (screen implemented in T42; until then the route shows the placeholder). Handle the not-found case with ErrorView.
+Widget tests: shows data, toggle, delete confirmation.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(tasks): task details screen"
+
+
+##### T24 | Wire up tasks end-to-end and test #####
+PHASE: 3
+DEPENDS: T23
+PROMPT:
+Make sure the FAB, card tap, edit, delete, undo, search and filters work together across screens through the real router. Add a flow widget test: add 3 tasks, search one, filter by pending/priority, open details, edit, mark done, delete, undo. Fix any bugs. Update memory.md.
+DONE WHEN: flow test passes; full `flutter test` green; `flutter analyze` clean.
+COMMIT: "test(tasks): crud flow test and fixes"
+
+
+##### T25 | Suggested tasks: model, Dio client, remote datasource #####
+PHASE: 4
+DEPENDS: T24
+PROMPT:
+Create lib/data/models/suggested_task_model.dart (id, todo, completed, userId; fromJson/toJson; mapper `toTask()` producing a TaskModel with source=imported, default priority medium) and a paged response model (todos, total, skip, limit). Create lib/data/datasources/remote/api_client.dart (Dio with baseUrl https://dummyjson.com, 10s connect/receive timeouts, a small logging interceptor active only in debug mode, error mapping to AppException) and suggested_remote_datasource.dart (`fetchTodos({limit, skip})`). Add the Dio instance to AppDependencies so tests can inject a Dio with a fake HttpClientAdapter.
+Unit tests with a fake adapter: success parse, malformed JSON, 500 error, timeout, no-connection mapping.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(api): dio client and suggested tasks datasource"
+
+
+##### T26 | Suggested repository and cubit (pagination + refresh) #####
+PHASE: 4
+DEPENDS: T25
+PROMPT:
+Create lib/data/repositories/suggested_repository.dart (wraps datasource, returns domain models) and features/suggested/cubit/suggested_cubit.dart with states: initial, loading, success(items, hasMore, isLoadingMore), failure(message, with previously loaded items kept when loadMore fails). Methods: load(), refresh(), loadMore() (skip += limit, stops when skip+limit >= total), import(suggested) which delegates to TaskRepository via TaskCubit.add (imported ids tracked so the UI marks them "Added"). Provide at app level.
+bloc_test tests with fake repo: first load, refresh, load more until end, failure, import tracking.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(suggested): suggested cubit with pagination and import"
+
+
+##### T27 | Suggested tab UI and tab bar in Tasks #####
+PHASE: 4
+DEPENDS: T26
+PROMPT:
+Turn the Tasks tab into two sub-tabs using TabBar/TabBarView: "My Tasks" (existing) and "Suggested". Implement features/suggested/view/suggested_view.dart: list of suggested items with an "Add" button (becomes disabled "Added" after import), pull-to-refresh, infinite scroll via ScrollController near-bottom trigger with a bottom spinner, loading view, empty view, error view with retry, and a snackbar confirming import. Preserve scroll state with AutomaticKeepAliveClientMixin. Keep the search bar scoped to My Tasks only (hide it or disable it on the Suggested tab).
+Widget tests with a fake cubit for loading, success, import tap, error.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(suggested): suggested tab with infinite scroll and import"
+
+
+##### T28 | API flow verification #####
+PHASE: 4
+DEPENDS: T27
+PROMPT:
+Run a live check with curl against https://dummyjson.com/todos?limit=5 to confirm the response shape still matches the model (log the result; if offline, skip and log). Add a flow test using a fake Dio adapter: open Suggested -> items load -> import one -> it appears in My Tasks -> paging loads the next page. Fix issues. Update memory.md.
+DONE WHEN: flow test passes; analyze clean.
+COMMIT: "test(suggested): api to local import flow test"
+
+
+##### T29 | Verify media URLs and add local fallbacks #####
+PHASE: 5
+DEPENDS: T28
+PROMPT:
+Using curl -I (follow redirects) check every audio and video URL in context.md/media_urls.dart. Log status codes. Replace dead URLs with working public https sample media (record the change in memory.md Decisions and media_urls.dart). If network is available and files are small enough (< 6 MB each), download ONE audio file to assets/audio/fallback.mp3 and ONE video to assets/video/fallback.mp4, then add them to pubspec assets and media_urls.dart as `fallbackAudioAsset` and `fallbackVideoAsset`. If downloading is impossible, log it and add to Human To-Do. Confirm the final asset sizes do not bloat the repo (> 15 MB total is not acceptable).
+DONE WHEN: media_urls.dart contains verified URLs; fallbacks added when possible.
+COMMIT: "chore(media): verify media urls and add local fallbacks"
+
+
+##### T30 | Track model and AudioPlayerService (just_audio wrapper) #####
+PHASE: 5
+DEPENDS: T29
+PROMPT:
+Create lib/data/models/track_model.dart (id, title, artist, durationHint (optional), url/asset path, artwork gradient colors/icon identifiers as plain data, mood label such as Lo-fi/Ambient/Piano) and lib/data/datasources/media/audio_player_service.dart: an abstract `AudioPlayerService` exposing streams (positionStream, durationStream, playerStateStream mapped to our own enum AppPlayerStatus {idle, loading, buffering, ready, playing, paused, completed, error}, currentIndexStream), methods (setPlaylist(tracks, initialIndex), play, pause, seek(Duration), next, previous, skipTo(index), setLoopMode/dispose) and a `JustAudioPlayerService` implementation using just_audio ConcatenatingAudioSource (or setAudioSources if the installed version deprecates it) with try/catch mapping to MediaException. If a remote track fails, fall back to the local asset when available. Create a repository `AudioRepository` returning the 3 focus tracks from media_urls.dart.
+Unit-test the status mapping logic with a pure function (not requiring a device).
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(audio): track model and just_audio service wrapper"
+
+
+##### T31 | AudioCubit #####
+PHASE: 5
+DEPENDS: T30
+PROMPT:
+Create features/audio/cubit/audio_cubit.dart and audio_state.dart: state = status, tracks, currentIndex, position, duration, errorMessage, isShuffle/repeat flags (simple repeat-all toggle). Subscribes to the service streams (cancel in close()). Methods: init(), togglePlayPause(), play(), pause(), seek(), next(), previous() (restart track if position > 3s, else go to previous), selectTrack(index), retry(), stop(). When the playlist completes, set status completed and reset to the first track paused (or loop if repeat is on). Provide the cubit at app level so the Focus screen and Music screen share it.
+bloc_test tests using a fake AudioPlayerService with controllable StreamControllers: loading -> playing -> paused, seek, next/previous, completion, error then retry.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(audio): audio cubit with fake-service tests"
+
+
+##### T32 | Music player screen UI #####
+PHASE: 5
+DEPENDS: T31
+PROMPT:
+Implement features/audio/view/music_screen.dart (Music tab): large artwork card per current track (gradient tile with icon, rounded, subtle animated scale when playing), title/artist/mood, Slider for seek (use onChangeStart/onChanged/onChangeEnd so scrubbing does not fight the stream), elapsed and total duration labels (mm:ss), controls row (Previous, Play/Pause large, Next, Repeat), and a track list below (current one highlighted with an animated equalizer indicator when playing; tap to switch). Responsive: on wide/landscape screens use a Row (artwork left, controls and list right); on narrow use a scrollable Column. No overflow at 320x568.
+Widget tests with a fake AudioCubit state: renders title, durations formatted correctly, tap play calls togglePlayPause, tap next calls next, slider change seeks.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(audio): music player screen"
+
+
+##### T33 | Audio states, errors and Android config #####
+PHASE: 5
+DEPENDS: T32
+PROMPT:
+Complete state handling in the Music screen: loading spinner over artwork and disabled controls while loading/buffering, error panel with message and Retry button, completed state showing a "Replay playlist" button, graceful behaviour when offline (error message with retry, local fallback used if available). Ensure android manifest requirements for just_audio (internet permission already present; add anything needed for the installed version). Make sure audio pauses when the app is backgrounded (default) and the player is disposed when the app closes.
+Add widget tests for loading, error+retry, and completed states.
+If BUILD_CAPABILITY is full run `flutter build apk --debug` to catch native issues. Log the result.
+DONE WHEN: tests pass; build ok if capable.
+COMMIT: "feat(audio): loading, error and completed states"
+
+
+##### T34 | Audio integration test with fake service #####
+PHASE: 5
+DEPENDS: T33
+PROMPT:
+Write a widget flow test with the fake service: open Music tab -> tracks listed -> tap play -> state playing -> seek -> next -> previous -> simulate completion -> replay -> simulate error -> retry. Fix bugs. Update memory.md with audio architecture notes (so the Focus screen can reuse AudioCubit).
+DONE WHEN: flow test passes; full test suite green.
+COMMIT: "test(audio): music player flow test"
+
+
+##### T35 | Video player screen (Chewie, network) #####
+PHASE: 6
+DEPENDS: T34
+PROMPT:
+Implement features/video/view/video_screen.dart (Videos tab) and a reusable features/video/widgets/focus_video_player.dart: a list of 2 videos (title, description, thumbnail as gradient tile with play icon) from media_urls.dart; tapping one opens features/video/view/video_player_screen.dart (add route) that shows the video in a 16:9 box using VideoPlayerController.networkUrl + ChewieController (aspect ratio from the controller, allowFullScreen true, allowMuting, looping false, material progress colors from theme). Dispose controllers properly. Support portrait layout correctly with the description and a "More videos" list below.
+Widget tests only for the list and navigation (controllers are not unit tested; use a builder abstraction so the player widget can be replaced by a fake in tests).
+DONE WHEN: tests pass; analyze clean; debug build ok if capable.
+COMMIT: "feat(video): video list and chewie player screen"
+
+
+##### T36 | Video states: buffering, completion/replay, error/retry, time labels #####
+PHASE: 6
+DEPENDS: T35
+PROMPT:
+Extend the video player: a controller listener (ValueListenable) driving a lightweight VideoViewState {loading, ready, buffering, playing, paused, completed, error}; overlay widgets: centered spinner for loading and buffering, a Replay button when completed (seeks to zero and plays), an error panel with message and Retry that re-initializes the controller (and tries the local fallback asset if present), and text labels below the player showing "current / total" (mm:ss) updated live, plus our own play/pause button and seek Slider (in addition to Chewie controls, or Chewie's controls hidden in favor of ours - choose one approach, keep it consistent, and log the decision). Handle app lifecycle (pause on background).
+Unit-test the pure state-mapping function and time formatter.
+DONE WHEN: tests pass; analyze clean; debug build ok if capable.
+COMMIT: "feat(video): buffering, replay, error handling and time labels"
+
+
+##### T37 | Fullscreen and orientation handling #####
+PHASE: 6
+DEPENDS: T36
+PROMPT:
+Ensure fullscreen works (Chewie fullscreen or own implementation): on entering fullscreen allow landscape orientations and hide system UI (immersive); on exit restore portrait-up and system UI. In landscape, the player screen layout must not overflow (use LayoutBuilder / OrientationBuilder, hide secondary content). Playback position must persist across fullscreen toggle. Restore orientations in dispose. Add the needed `SystemChrome` handling and make sure the rest of the app stays portrait-friendly but not locked in a way that breaks tablets.
+Add what tests are feasible (e.g. orientation helper logic); log manual-test notes in memory.md if device tests are impossible.
+DONE WHEN: analyze clean; tests pass; debug build ok if capable.
+COMMIT: "feat(video): fullscreen and orientation handling"
+
+
+##### T38 | ThemeCubit and settings persistence #####
+PHASE: 7
+DEPENDS: T37
+PROMPT:
+Create features/profile/cubit/theme_cubit.dart (ThemeMode light/dark/system persisted in PrefsService; load on startup in bootstrap so there is no flash) and settings_cubit.dart if needed (default focus duration 15/25/45, persisted). Wire ThemeCubit to MaterialApp.themeMode, replacing the temporary system mode from T05.
+bloc_test tests for load, set, persistence.
+DONE WHEN: tests pass; app respects stored theme.
+COMMIT: "feat(profile): theme and settings cubits with persistence"
+
+
+##### T39 | Profile / Settings screen #####
+PHASE: 7
+DEPENDS: T38
+PROMPT:
+Implement features/profile/view/profile_screen.dart (Profile tab): avatar with initials, name and email, edit name dialog (validated, saved via AuthRepository.updateName then AuthCubit.refreshUser), theme selector (SegmentedButton System/Light/Dark), default focus duration selector, stats summary placeholder (filled in T43), "Clear all data" (confirmation dialog -> clears tasks, focus sessions, but keeps the logged-in user), About section (app version via a constant, packages used), and Logout (confirmation, clears session, navigates to login and clears the navigation stack, also stops audio). Scrollable and overflow-safe.
+Widget tests: edit name, theme change, logout flow, clear data confirmation.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(profile): profile and settings screen"
+
+
+##### T40 | Focus session model, datasource, repository #####
+PHASE: 8
+DEPENDS: T39
+PROMPT:
+Create lib/data/models/focus_session_model.dart (id, taskId, taskTitle, plannedMinutes, actualSeconds, completed, startedAt, endedAt; JSON) and datasource/repository using HiveService box `focus_sessions`. Repository API: addSession(), sessionsForDay(DateTime), todayStats() -> FocusStats(sessionsToday, focusMinutesToday, tasksCompletedToday (from TaskRepository), currentStreakDays), clearAll(). Register in AppDependencies and provide via RepositoryProvider.
+Unit tests including streak computation and day boundaries.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(focus): focus session model and repository with stats"
+
+
+##### T41 | TimerCubit #####
+PHASE: 8
+DEPENDS: T40
+PROMPT:
+Create features/focus/cubit/timer_cubit.dart and timer_state.dart: status {idle, running, paused, finished}, totalSeconds, remainingSeconds, selected task. Methods: setDuration(minutes), start(task), pause(), resume(), reset(), finishEarly(). Use a Ticker or Timer.periodic(1s) with the ability to inject a fake clock/ticker for tests. On natural finish, persist a completed FocusSession; on finishEarly persist a partial one (if > 10 seconds). Cancel timers in close().
+bloc_test / fake_async tests for countdown, pause/resume, finish, partial session.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(focus): timer cubit with session logging"
+
+
+##### T42 | Focus Session screen UI #####
+PHASE: 8
+DEPENDS: T41
+PROMPT:
+Implement features/focus/view/focus_screen.dart (replace placeholder): shows task title, a circular countdown (CustomPaint or CircularProgressIndicator with big mm:ss text), duration chips (15/25/45 from settings default), Start/Pause/Resume/Reset controls, a compact "Focus Music" mini-player bound to the shared AudioCubit (play/pause, next, track title; starts playing when the session starts if the user toggles "Play music with session", default on), and on completion a dialog "Great focus! Mark task as done?" (Yes marks done via TaskCubit, No keeps pending) plus a snackbar summary. Back press during a running session asks for confirmation. Keep screen awake is optional: if wakelock_plus is added, log it. Overflow-safe on small screens.
+Widget tests with fake cubits: idle, running, completion dialog.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(focus): focus session screen with music mini-player"
+
+
+##### T43 | Stats card on Home and Profile #####
+PHASE: 8
+DEPENDS: T42
+PROMPT:
+Create features/focus/widgets/stats_card.dart (sessions today, focus minutes, tasks completed, streak) and show it under the Tasks tab header and in the Profile screen. Create a lightweight StatsCubit that refreshes when sessions or tasks change (listen to TaskCubit and TimerCubit finish events, or reload on tab focus). Handle zero-data state with a friendly empty message.
+Widget tests for zero and non-zero stats.
+DONE WHEN: tests pass; analyze clean.
+COMMIT: "feat(focus): stats card on tasks tab and profile"
+
+
+##### T44 | Responsive and accessibility audit #####
+PHASE: 9
+DEPENDS: T43
+PROMPT:
+Write a widget test suite `test/responsive_test.dart` pumping every screen (login, signup, tasks tab, suggested view, task form, task details, music, videos list, profile, focus) with fake/in-memory dependencies at sizes 320x568, 360x640, 411x891, 800x1280 (tablet) and landscape 891x411, with textScaleFactor 1.0 and 1.3, asserting no RenderFlex overflow exceptions. Fix every overflow found (Flexible/Expanded, scroll views, ellipsis, wrap). Add Semantics labels/tooltips to icon-only buttons.
+DONE WHEN: responsive tests pass for all sizes; analyze clean.
+COMMIT: "fix(ui): responsive overflow fixes and semantics"
+
+
+##### T45 | Motion polish, app icon and native splash #####
+PHASE: 9
+DEPENDS: T44
+PROMPT:
+Polish: Hero animation between task card and details, AnimatedSwitcher for state changes, subtle list item animations, nice page transitions, consistent empty-state illustrations (icons in tinted circles). Create an app icon (generate a 1024x1024 PNG programmatically with a Dart or Python script - gradient rounded square with a simple timer/check glyph - store in assets/images/app_icon.png, with a foreground version for adaptive icon) and configure flutter_launcher_icons (android adaptive icon) and flutter_native_splash in pubspec.yaml, then run `dart run flutter_launcher_icons` and `dart run flutter_native_splash:create`. If image generation tooling is unavailable, use the simplest approach (solid gradient + letter F drawn with Pillow or a pure-Dart image builder) and log it.
+Take care not to break `flutter analyze` or builds. If capable, run `flutter build apk --debug`.
+DONE WHEN: icon and splash applied; analyze clean; build ok if capable.
+COMMIT: "feat(ui): animations, app icon and native splash"
+
+
+##### T46 | Full app smoke test #####
+PHASE: 9
+DEPENDS: T45
+PROMPT:
+Write `test/app_smoke_test.dart` that boots the whole app with in-memory fakes through the real router: splash -> login (demo) -> Tasks tab -> add task -> open details -> Start Focus -> start/finish timer (fake ticker) -> back -> Music tab play/pause -> Videos tab list -> Profile -> toggle theme -> logout -> login screen. Fix every failure discovered. Run the full suite: `dart format .`, `flutter analyze`, `flutter test`. All must be clean.
+DONE WHEN: full suite green and analyze clean.
+COMMIT: "test: whole-app smoke test"
+
+
+##### T47 | Release APK build and verification #####
+PHASE: 9
+DEPENDS: T46
+PROMPT:
+If BUILD_CAPABILITY is full: run `flutter clean && flutter pub get && flutter build apk --release`. Fix any release-only issues (missing INTERNET permission in main manifest, R8/proguard problems with just_audio/video_player, minSdk). Copy the result to release/focusdesk-release.apk (make sure .gitignore allows it) and record its size. Inspect the manifest of the built APK if aapt/apkanalyzer is available to confirm INTERNET permission and the app label. Optionally run `flutter build apk --release --split-per-abi` ONLY if the universal APK exceeds 80 MB, else skip.
+If capability is not full: write the exact build steps into Human To-Do in memory.md and README notes (to be used in T49) and skip the build.
+DONE WHEN: release/focusdesk-release.apk exists (or Human To-Do recorded).
+COMMIT: "build: release apk"
+
+
+##### T48 | OPTIONAL stretch: background audio and media notification #####
+PHASE: 9
+DEPENDS: T47
+PROMPT:
+This is an OPTIONAL bonus. Implement background playback with lock-screen/notification controls using the `just_audio_background` package: add the package, add the required Android manifest entries (foreground service, WAKE_LOCK, FOREGROUND_SERVICE, and the AudioService service and receiver declarations as documented by the package for the installed version) and MainActivity changes if required, call `JustAudioBackground.init(...)` in bootstrap, and give each track a MediaItem tag (title, artist, artwork if available). Ensure tests still pass (guard init so tests do not need the platform).
+Safety rule: after the change run analyze, tests, and (if capable) BOTH debug and release builds. If anything cannot be made to work within 4 attempts, REVERT this task completely with git (`git checkout .` for uncommitted changes) and log "SKIPPED: background audio" - the project must remain in a green state. If it succeeds and capability is full, rebuild and replace release/focusdesk-release.apk.
+DONE WHEN: either feature works with green builds, or is cleanly reverted and logged.
+COMMIT: "feat(audio): background playback and media notification" (or "chore: skip background audio" if reverted)
+
+
+##### T49 | README.md #####
+PHASE: 10
+DEPENDS: T48
+PROMPT:
+Write a professional README.md: project name and one-line pitch, feature list (grouped: Tasks, Focus Session, Music, Videos, Auth, Profile), screenshots section with placeholder paths docs/screenshots/*.png and a note (human to-do: add screenshots), tech stack and why each package was chosen (table), architecture overview with an ASCII diagram (UI -> Cubit -> Repository -> Datasource), folder structure, state-management approach (one Cubit per feature, Equatable states, repositories injected via RepositoryProvider), API flow (DummyJSON -> Dio -> model -> import to local), audio implementation notes (just_audio, service wrapper, state mapping), video implementation notes (video_player + Chewie, states, fullscreen), local storage notes (Hive for tasks/sessions, SharedPreferences for session/theme), error-handling strategy, testing (how to run, what is covered), setup steps (clone, flutter pub get, flutter run), build steps (flutter build apk --release), Flutter/Dart versions from memory.md, test credentials (demo@focusdesk.app / Focus@123), known limitations (mock auth, demo API), and future improvements (real backend auth, sync, push reminders, pagination for local data). Add a short "Assignment requirements checklist" table mapping every requirement to where it is implemented. Keep it accurate to the actual code: verify claims against the repo.
+DONE WHEN: README complete and accurate.
+COMMIT: "docs: add comprehensive readme"
+
+
+##### T50 | EXPLAINER.md (interview preparation) #####
+PHASE: 10
+DEPENDS: T49
+PROMPT:
+Write EXPLAINER.md for the human who must defend this project in a technical discussion. Sections: 1) 60-second project pitch; 2) architecture walkthrough with the actual file paths; 3) why Cubit and how a feature flows end to end (trace "add a task" through UI -> cubit -> repository -> Hive -> state -> UI, quoting real class and method names); 4) API flow (Dio setup, interceptors, model parsing, error mapping, pagination); 5) audio implementation deep dive (service wrapper, streams, status mapping, seek handling, completion/error); 6) video implementation deep dive (controllers, listener, overlays, fullscreen/orientation, disposal); 7) local storage decisions (why Hive JSON strings, why SharedPreferences for session); 8) testing strategy; 9) at least 25 likely interview questions with concise model answers drawn from THIS code (e.g. "why did you use IndexedStack?", "how do you avoid memory leaks with streams?", "what happens if the API fails?", "how would you add real auth?", "what would you do differently with more time?"); 10) a glossary of every package used and where; 11) honest list of trade-offs and known limitations; 12) a "how to demo the app in 3 minutes" script. Base everything on the real code; read the files before writing.
+DONE WHEN: EXPLAINER.md is complete and references real code.
+COMMIT: "docs: add explainer for technical discussion"
+
+
+##### T51 | Final QA, cleanup and final report #####
+PHASE: 10
+DEPENDS: T50
+PROMPT:
+Final pass: run `dart format .`, `flutter analyze`, `flutter test`, and (if capable) `flutter build apk --release` one last time; confirm release/focusdesk-release.apk matches the final code. Check: no TODO/FIXME left unresolved, no unused files/assets/dependencies (remove unused packages from pubspec), no hard-coded colors or strings in widgets (spot-check with grep for `Color(0x` and `Colors.` outside core/theme), pubspec description and version are right, .gitignore is correct, README matches reality. Verify the requirements checklist from context.md line by line against the code and tests; fix gaps (small fixes only). Ensure `git status` is clean and git log shows meaningful commits.
+Create FINAL_REPORT.md: what was built, requirement-by-requirement status, test summary (counts), build status, BLOCKED/SKIPPED items, Human To-Do list (create GitHub repo and push, make it public or grant access, attach APK, add screenshots to docs/screenshots, run on a real device, read EXPLAINER.md), and a note of the exact commands to rebuild. Set NEXT_TASK: DONE in memory.md, tick everything in the checklist, and finish with the last commit.
+DONE WHEN: FINAL_REPORT.md exists, repo clean, NEXT_TASK is DONE.
+COMMIT: "chore: final qa and project report"
+
+################################################################################
+# END OF PROMPTS
+################################################################################
