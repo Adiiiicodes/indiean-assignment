@@ -31,6 +31,7 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
   final _debouncer = Debouncer();
   late final TextEditingController _searchController;
   late String _observedQuery;
+  bool _openingDetails = false;
 
   @override
   void initState() {
@@ -77,6 +78,44 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
   void _addTask() {
     FocusManager.instance.primaryFocus?.unfocus();
     unawaited(Navigator.of(context).pushNamed(Routes.taskForm));
+  }
+
+  Future<void> _openDetails(
+    TaskModel task,
+    TaskCubit cubit,
+    BuildContext snackbarContext,
+  ) async {
+    if (_openingDetails ||
+        cubit.isClosed ||
+        cubit.state.status == TaskStatus.loading) {
+      return;
+    }
+    _openingDetails = true;
+    final previousDeleted = cubit.state.lastDeleted;
+    FocusManager.instance.primaryFocus?.unfocus();
+    try {
+      final result = await Navigator.of(context)
+          .pushNamed(Routes.taskDetails, arguments: task.id);
+      if (!mounted || !snackbarContext.mounted || cubit.isClosed) return;
+      final deleted = cubit.state.lastDeleted;
+      final snapshot = result is TaskModel
+          ? result
+          : deleted?.id == task.id && deleted != previousDeleted
+          ? deleted
+          : null;
+      if (snapshot != null && deleted == snapshot) {
+        _showUndo(
+          snackbarContext,
+          cubit,
+          snapshot,
+          cubit.state.status == TaskStatus.failure
+              ? cubit.state.errorMessage ?? AppStrings.storageError
+              : AppStrings.taskDeleted,
+        );
+      }
+    } finally {
+      _openingDetails = false;
+    }
   }
 
   void _showUndo(
@@ -132,7 +171,8 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
               );
               setState(() {});
             }
-            if (state.status == TaskStatus.failure) {
+            if (state.status == TaskStatus.failure &&
+                ModalRoute.of(context)?.isCurrent != false) {
               final message = state.errorMessage ?? AppStrings.storageError;
               final deleted = state.lastDeleted;
               if (deleted != null) {
@@ -416,13 +456,7 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
       child: TaskCard(
         task: task,
         onToggle: loading ? null : () => unawaited(cubit.toggleDone(task.id)),
-        onTap: () {
-          FocusManager.instance.primaryFocus?.unfocus();
-          unawaited(
-            Navigator.of(context)
-                .pushNamed(Routes.taskDetails, arguments: task.id),
-          );
-        },
+        onTap: () => unawaited(_openDetails(task, cubit, snackbarContext)),
       ),
     );
   }

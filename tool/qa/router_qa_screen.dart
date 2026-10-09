@@ -32,11 +32,7 @@ class _RouterQaScreenState extends State<RouterQaScreen> {
       route,
       arguments: switch (route) {
         Routes.taskDetails => 'native-task-42',
-        Routes.taskForm => TaskModel(
-          id: 'native-task-42',
-          title: 'Routing task',
-        ),
-        Routes.focus => const {'id': 'native-task-42'},
+        Routes.focus => TaskModel(id: 'native-task-42', title: 'Routing task'),
         _ => null,
       },
     );

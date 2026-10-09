@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T23
+NEXT_TASK: T24
 
 ## BUILD_CAPABILITY
 full
@@ -44,7 +44,7 @@ full
 - [x] T20 - Tasks tab UI (header, search, filters, list)
 - [x] T21 - TaskCard widget with Hero and checkbox
 - [x] T22 - Add/Edit task form screen
-- [ ] T23 - Task details screen
+- [x] T23 - Task details screen
 - [ ] T24 - Wire up tasks end-to-end and test
 - [ ] T25 - Suggested tasks: model, Dio client, remote datasource
 - [ ] T26 - Suggested repository and cubit (pagination + refresh)
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- features/tasks/view/task_details_screen.dart: reactive unfiltered ID lookup, Hero/full metadata/description, latest-task edit/focus routes, guarded completion and confirmed delete with exact snapshot; deletion/readback failure Retry and previous-list Undo recovery. task_details_screen_test.dart13 cases.
 - features/tasks/view/task_form_screen.dart: typed create/edit form, validated controllers, clearable calendar date, priority/done, busy controls, dirty discard and UUID-preserving retry reconciliation; test/features/tasks/task_form_screen_test.dart12 cases; router validates TaskModel argument.
 - features/tasks/widgets/task_card.dart: themed rounded interactive card, built-in animated checkbox, Hero title, completion strike, description and wrapped priority/date/import badges; test/features/tasks/task_card_test.dart10 cases; TasksTab uses it within existing swipe/undo.
 - features/tasks/view/tasks_tab.dart: time/name greeting,400ms search, combined horizontal filters, lazy sliver list, refresh/loading/empty/error/add routes and swipe/undo retry; test/features/tasks/tasks_tab_test.dart covers20 cases. Shared EmptyView compact option keeps phone CTA visible.
@@ -113,6 +114,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- Details returns the exact deleted task snapshot; TasksTab awaits the route before showing Undo and suppresses covered-list errors. A newly committed deletion snapshot also offers Undo when leaving failed-readback Details with Back; Retry confirms storage before popping. Rapid repeated card taps are guarded.
 - Create form retains one draft UUID. After a failed save it reloads through TaskCubit, updating that UUID if the write had committed before readback failed; otherwise retries add. Success requires matching saved editable fields and success status. Edit preserves identity/source/creation and explicitly clears due dates.
 - TasksTab uses CustomScrollView with SliverList.builder (equivalent lazy builder) so greeting/search/filters can scroll above a small keyboard. Compact empty content fits first phone fold; keyboard metrics observer hides FAB while typing because outer Home Scaffold consumes MediaQuery insets. Undo remains retryable after failed restore. Native slow/failing first reads exist only in development QA launcher and use actual Hive afterward.
 - TaskModel defaults: medium priority/local source/pending/empty description/Untitled task; invalid calendar dates do not normalize silently. Both due getters apply to pending tasks in local calendar days. copyWith(clearDueDate:true) explicitly clears the nullable date; clock helper methods enable deterministic tests.
@@ -151,7 +153,8 @@ full
 
 
 
-- Resident native QA tty session53569, target tool/native_qa.dart, PID14339; production app open, Demo logged in. Four test tasks remain for details QA: Native form task high/pending/local; Gamma focused plan low/done/imported/description/no due; Beta high/done/pastdue; Alpha low/pending/today. Actual device/font/night mode restored. Use --no-dds; lowercase r reload succeeds, uppercase R intermittently loses connection leaving prior app state; cold build/run resets launcher. Actual accounts/test tasks remain emulator-only. Task state loads once per identity and logout/replacement invalidates old reads.
+- Resident native QA tty session48278, target tool/native_qa.dart, PID15447; production app open, Demo logged in. Four test tasks: Native details edited high/pending/local/full description; Gamma focused plan low/done/imported/description/no due; Beta high/pending/pastdue; Alpha low/pending/due9Oct (now overdue after midnight). Actual device/font/night mode restored. Use --no-dds; lowercase r reload succeeds, uppercase R intermittently loses connection leaving prior app state; cold build/run resets launcher. Accounts/tasks remain emulator-only. Task state loads once per identity; logout/replacement invalidates old reads.
+- 00:00IST10Oct checkpoint:23/52 committed,29remaining;2verifiedcommits/30min,details finishing; ETA7–10h/completion07:00–10:00IST. Next checkpoint00:30IST.
 
 
 

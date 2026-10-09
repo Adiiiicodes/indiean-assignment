@@ -247,6 +247,14 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
               ),
               const SizedBox(height: 12),
               OutlinedButton(
+                onPressed: () => Navigator.of(context).pushNamed(
+                  Routes.taskDetails,
+                  arguments: 'native-missing-task',
+                ),
+                child: const Text('Missing task details'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => TaskRepositoryQaScreen(

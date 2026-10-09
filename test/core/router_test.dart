@@ -31,12 +31,14 @@ class _FrozenAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 class _FrozenTaskCubit extends MockCubit<TaskState> implements TaskCubit {}
 
-Widget _host(GlobalKey<NavigatorState> navigatorKey) {
+Widget _host(GlobalKey<NavigatorState> navigatorKey, {TaskModel? task}) {
   final auth = _FrozenAuthCubit();
   when(() => auth.state).thenReturn(const AuthInitial());
   when(() => auth.checkSession()).thenAnswer((_) => Completer<void>().future);
   final tasks = _FrozenTaskCubit();
-  when(() => tasks.state).thenReturn(TaskState(status: TaskStatus.success));
+  when(() => tasks.state).thenReturn(
+    TaskState(status: TaskStatus.success, tasks: task == null ? [] : [task]),
+  );
   addTearDown(auth.close);
   addTearDown(tasks.close);
   return MultiBlocProvider(
@@ -69,7 +71,7 @@ void main() {
       (Routes.profile, ProfileScreen, null),
       (Routes.focus, FocusScreen, task),
     ];
-    await tester.pumpWidget(_host(navigatorKey));
+    await tester.pumpWidget(_host(navigatorKey, task: task));
     await tester.pumpAndSettle();
     expect(find.byType(SplashScreen), findsOneWidget);
     expect(
@@ -88,6 +90,7 @@ void main() {
       expect(settings.arguments, same(argument));
       if (name == Routes.taskDetails) {
         expect(tester.widget<TaskDetailsScreen>(screen).taskId, 'id-42');
+        expect(find.text(task.title), findsOneWidget);
       } else if (name == Routes.taskForm) {
         expect(tester.widget<TaskFormScreen>(screen).task, same(task));
       } else if (name == Routes.focus) {
