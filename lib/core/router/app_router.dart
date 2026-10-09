@@ -23,9 +23,11 @@ abstract final class AppRouter {
       Routes.signup => const SignupScreen(),
       Routes.home => const HomeScreen(),
       Routes.taskDetails when arguments == null || arguments is String =>
-        TaskDetailsScreen(taskId: arguments as String?),
+        ScaffoldMessenger(
+          child: TaskDetailsScreen(taskId: arguments as String?),
+        ),
       Routes.taskForm when arguments == null || arguments is TaskModel =>
-        TaskFormScreen(task: arguments as TaskModel?),
+        ScaffoldMessenger(child: TaskFormScreen(task: arguments as TaskModel?)),
       Routes.music => const MusicScreen(),
       Routes.video => const VideoScreen(),
       Routes.profile => const ProfileScreen(),

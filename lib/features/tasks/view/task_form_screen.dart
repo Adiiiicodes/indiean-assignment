@@ -221,7 +221,6 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
         }
       }
       if (result.status == TaskStatus.success && saved != null) {
-        AppSnackbar.showSuccess(context, AppStrings.taskSaved);
         _leave(saved);
       } else {
         _verifyCreate = widget.task == null;

@@ -73,7 +73,11 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       _error = null;
     });
     try {
-      await Navigator.of(context).pushNamed(route, arguments: task);
+      final result = await Navigator.of(context)
+          .pushNamed(route, arguments: task);
+      if (mounted && route == Routes.taskForm && result is TaskModel) {
+        AppSnackbar.showSuccess(context, AppStrings.taskSaved);
+      }
     } finally {
       if (mounted) setState(() => _navigating = false);
     }

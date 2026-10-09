@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:focusdesk/core/constants/app_constants.dart';
 import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/router/routes.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
@@ -35,6 +36,7 @@ class _TaskCubit extends Cubit<TaskState> implements TaskCubit {
   int clearCalls = 0;
   int undoCalls = 0;
   Completer<void>? pendingLoad;
+  Completer<void>? pendingToggle;
   bool failDelete = false;
   bool failUndo = false;
 
@@ -111,6 +113,7 @@ class _TaskCubit extends Cubit<TaskState> implements TaskCubit {
 
   @override
   Future<void> undoDelete() async {
+    if (state.status == TaskStatus.loading) return;
     undoCalls++;
     final snapshot = state.lastDeleted;
     emit(state.copyWith(status: TaskStatus.loading, clearError: true));
@@ -135,9 +138,14 @@ class _TaskCubit extends Cubit<TaskState> implements TaskCubit {
 
   @override
   Future<void> toggleDone(String id) async {
+    if (state.status == TaskStatus.loading) return;
     toggledIds.add(id);
+    emit(state.copyWith(status: TaskStatus.loading, clearError: true));
+    await pendingToggle?.future;
+    if (isClosed) return;
     emit(
       state.copyWith(
+        status: TaskStatus.success,
         tasks: [
           for (final task in state.tasks)
             if (task.id == id) task.copyWith(isDone: !task.isDone) else task,
@@ -211,6 +219,7 @@ Future<_TaskCubit> _pumpTab(
   int hour = 9,
   Size size = const Size(800, 1000),
   Brightness brightness = Brightness.light,
+  List<RouteSettings>? openedRoutes,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -247,13 +256,16 @@ Future<_TaskCubit> _pumpTab(
           child: child!,
         ),
         home: Scaffold(body: TasksTab(now: () => DateTime(2026, 10, 9, hour))),
-        onGenerateRoute: (settings) => MaterialPageRoute<void>(
-          settings: settings,
-          builder: (_) => Scaffold(
-            appBar: AppBar(title: Text(settings.name!)),
-            body: Text('Destination ${settings.name}: ${settings.arguments}'),
-          ),
-        ),
+        onGenerateRoute: (settings) {
+          openedRoutes?.add(settings);
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => Scaffold(
+              appBar: AppBar(title: Text(settings.name!)),
+              body: Text('Destination ${settings.name}: ${settings.arguments}'),
+            ),
+          );
+        },
       ),
     ),
   );
@@ -437,6 +449,56 @@ void main() {
     expect(find.text('Destination ${Routes.taskForm}: null'), findsOneWidget);
   });
 
+  testWidgets('rapid FAB callbacks open one form and release after returning', (
+    tester,
+  ) async {
+    final openedRoutes = <RouteSettings>[];
+    await _pumpTab(tester, openedRoutes: openedRoutes);
+    final open = tester
+        .widget<FloatingActionButton>(find.byType(FloatingActionButton))
+        .onPressed!;
+    open();
+    open();
+    await tester.pumpAndSettle();
+    expect(openedRoutes.map((route) => route.name), [Routes.taskForm]);
+    expect(find.text('Destination ${Routes.taskForm}: null'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byType(TasksTab), findsOneWidget);
+    expect(find.text('Destination ${Routes.taskForm}: null'), findsNothing);
+    await _tapVisible(tester, find.byType(FloatingActionButton));
+    expect(openedRoutes.map((route) => route.name), [
+      Routes.taskForm,
+      Routes.taskForm,
+    ]);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'rapid keyboard changes allow Add before FAB transitions settle',
+    (tester) async {
+      final openedRoutes = <RouteSettings>[];
+      await _pumpTab(tester, openedRoutes: openedRoutes);
+      await tester.tap(_search);
+      await tester.pumpAndSettle();
+      addTearDown(tester.view.resetViewInsets);
+      for (final bottom in [260.0, 0.0, 260.0, 0.0]) {
+        tester.view.viewInsets = FakeViewPadding(bottom: bottom);
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      final add = tester
+          .widgetList<FloatingActionButton>(find.byType(FloatingActionButton))
+          .last
+          .onPressed!;
+      add();
+      await tester.pumpAndSettle();
+      expect(openedRoutes.map((route) => route.name), [Routes.taskForm]);
+      expect(find.text('Destination ${Routes.taskForm}: null'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('checkbox toggles completion and loading disables mutations', (
     tester,
   ) async {
@@ -483,6 +545,76 @@ void main() {
     expect(cubit.state.tasks.last, same(_tasks.first));
     expect(find.text(_tasks.first.title), findsOneWidget);
     expect(cubit.state.lastDeleted, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Undo snackbar expires without restoring the deleted task', (
+    tester,
+  ) async {
+    final cubit = await _pumpTab(tester);
+    await tester.drag(_tile(_tasks.first.id), const Offset(-650, 0));
+    await tester.pumpAndSettle();
+    expect(
+      find.widgetWithText(SnackBarAction, AppStrings.undo),
+      findsOneWidget,
+    );
+    expect(cubit.state.lastDeleted, same(_tasks.first));
+    await tester.pump(AppConstants.undoDuration);
+    await tester.pumpAndSettle();
+    expect(find.byType(SnackBar), findsNothing);
+    expect(find.widgetWithText(SnackBarAction, AppStrings.undo), findsNothing);
+    expect(cubit.undoCalls, 0);
+    expect(cubit.state.lastDeleted, same(_tasks.first));
+    expect(find.text(_tasks.first.title), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Undo waits for another mutation and restores its snapshot', (
+    tester,
+  ) async {
+    final pending = Completer<void>();
+    final cubit = _TaskCubit(
+      TaskState(status: TaskStatus.success, tasks: _tasks),
+    )..pendingToggle = pending;
+    addTearDown(() {
+      if (!pending.isCompleted) pending.complete();
+    });
+    await _pumpTab(tester, cubit: cubit);
+    await tester.drag(_tile(_tasks.first.id), const Offset(-650, 0));
+    await tester.pumpAndSettle();
+    expect(cubit.state.lastDeleted, same(_tasks.first));
+
+    final checkbox = find.descendant(
+      of: _tile(_tasks[1].id),
+      matching: find.byType(Checkbox),
+    );
+    await tester.ensureVisible(checkbox);
+    await tester.pumpAndSettle();
+    await tester.tap(checkbox);
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(cubit.state.status, TaskStatus.loading);
+    expect(cubit.toggledIds, [_tasks[1].id]);
+
+    await tester.tap(find.widgetWithText(SnackBarAction, AppStrings.undo));
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(cubit.undoCalls, 0);
+    expect(cubit.state.lastDeleted, same(_tasks.first));
+    expect(
+      cubit.state.tasks.any((task) => task.id == _tasks.first.id),
+      isFalse,
+    );
+
+    pending.complete();
+    await tester.pumpAndSettle();
+    expect(cubit.undoCalls, 1);
+    expect(cubit.state.status, TaskStatus.success);
+    expect(cubit.state.tasks.last, same(_tasks.first));
+    expect(
+      cubit.state.tasks.singleWhere((task) => task.id == _tasks[1].id).isDone,
+      isFalse,
+    );
+    expect(cubit.state.lastDeleted, isNull);
+    expect(find.text(_tasks.first.title), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

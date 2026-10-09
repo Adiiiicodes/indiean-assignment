@@ -31,7 +31,7 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
   final _debouncer = Debouncer();
   late final TextEditingController _searchController;
   late String _observedQuery;
-  bool _openingDetails = false;
+  bool _openingRoute = false;
 
   @override
   void initState() {
@@ -75,9 +75,23 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
     setState(() {});
   }
 
-  void _addTask() {
+  Future<void> _addTask(BuildContext snackbarContext) async {
+    final cubit = context.read<TaskCubit>();
+    if (_openingRoute ||
+        cubit.isClosed ||
+        cubit.state.status == TaskStatus.loading) {
+      return;
+    }
+    _openingRoute = true;
     FocusManager.instance.primaryFocus?.unfocus();
-    unawaited(Navigator.of(context).pushNamed(Routes.taskForm));
+    try {
+      final result = await Navigator.of(context).pushNamed(Routes.taskForm);
+      if (mounted && snackbarContext.mounted && result is TaskModel) {
+        AppSnackbar.showSuccess(snackbarContext, AppStrings.taskSaved);
+      }
+    } finally {
+      _openingRoute = false;
+    }
   }
 
   Future<void> _openDetails(
@@ -85,12 +99,12 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
     TaskCubit cubit,
     BuildContext snackbarContext,
   ) async {
-    if (_openingDetails ||
+    if (_openingRoute ||
         cubit.isClosed ||
         cubit.state.status == TaskStatus.loading) {
       return;
     }
-    _openingDetails = true;
+    _openingRoute = true;
     final previousDeleted = cubit.state.lastDeleted;
     FocusManager.instance.primaryFocus?.unfocus();
     try {
@@ -114,7 +128,7 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
         );
       }
     } finally {
-      _openingDetails = false;
+      _openingRoute = false;
     }
   }
 
@@ -125,10 +139,24 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
     String message,
   ) {
     AppSnackbar.showUndo(snackbarContext, message, () {
-      if (!cubit.isClosed && cubit.state.lastDeleted == snapshot) {
-        unawaited(cubit.undoDelete());
-      }
+      unawaited(_undo(cubit, snapshot));
     });
+  }
+
+  Future<void> _undo(TaskCubit cubit, TaskModel snapshot) async {
+    if (cubit.isClosed || cubit.state.lastDeleted != snapshot) return;
+    if (cubit.state.status == TaskStatus.loading) {
+      try {
+        await cubit.stream.firstWhere(
+          (state) => state.status != TaskStatus.loading,
+        );
+      } on StateError {
+        return;
+      }
+    }
+    if (mounted && !cubit.isClosed && cubit.state.lastDeleted == snapshot) {
+      await cubit.undoDelete();
+    }
   }
 
   Future<bool> _delete(TaskModel task, BuildContext snackbarContext) async {
@@ -250,7 +278,10 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
                                 title: AppStrings.noTasksTitle,
                                 message: AppStrings.noTasksMessage,
                                 actionLabel: AppStrings.addTask,
-                                onAction: loading ? null : _addTask,
+                                onAction: loading
+                                    ? null
+                                    : () =>
+                                          unawaited(_addTask(snackbarContext)),
                               )
                             : EmptyView(
                                 compact: true,
@@ -287,8 +318,11 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
               floatingActionButton: View.of(context).viewInsets.bottom > 0
                   ? null
                   : FloatingActionButton(
+                      heroTag: null,
                       tooltip: AppStrings.addTask,
-                      onPressed: loading ? null : _addTask,
+                      onPressed: loading
+                          ? null
+                          : () => unawaited(_addTask(snackbarContext)),
                       child: const Icon(Icons.add_rounded),
                     ),
             );

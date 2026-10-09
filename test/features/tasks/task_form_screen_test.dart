@@ -12,6 +12,7 @@ import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
 import 'package:focusdesk/features/tasks/cubit/task_state.dart';
 import 'package:focusdesk/features/tasks/view/task_form_screen.dart';
 import 'package:focusdesk/shared/widgets/app_button.dart';
+import 'package:focusdesk/shared/widgets/app_snackbar.dart';
 import 'package:focusdesk/shared/widgets/app_text_field.dart';
 
 class _FormCubit extends Cubit<TaskState> implements TaskCubit {
@@ -126,12 +127,26 @@ TextField _textField(WidgetTester tester, String label) =>
       find.descendant(of: _field(label), matching: find.byType(TextField)),
     );
 
+Future<void> _openForm(
+  BuildContext context,
+  ValueChanged<TaskModel?>? onResult,
+) async {
+  final result = await Navigator.of(context).pushNamed(Routes.taskForm);
+  if (!context.mounted) return;
+  final saved = result is TaskModel ? result : null;
+  onResult?.call(saved);
+  if (saved != null) {
+    AppSnackbar.showSuccess(context, AppStrings.taskSaved);
+  }
+}
+
 Future<void> _pumpForm(
   WidgetTester tester,
   _FormCubit cubit, {
   TaskModel? task,
   Size size = const Size(600, 900),
   Brightness brightness = Brightness.light,
+  ValueChanged<TaskModel?>? onResult,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -152,8 +167,7 @@ Future<void> _pumpForm(
           builder: (context) => Scaffold(
             body: Center(
               child: FilledButton(
-                onPressed: () =>
-                    Navigator.of(context).pushNamed(Routes.taskForm),
+                onPressed: () => unawaited(_openForm(context, onResult)),
                 child: const Text('Open form'),
               ),
             ),
@@ -205,7 +219,8 @@ void main() {
     'create trims fields and saves a local pending task with default priority',
     (tester) async {
       final cubit = _FormCubit();
-      await _pumpForm(tester, cubit);
+      TaskModel? returned;
+      await _pumpForm(tester, cubit, onResult: (task) => returned = task);
       expect(_textField(tester, AppStrings.title).autofocus, isTrue);
       expect(find.byType(SwitchListTile), findsNothing);
       await _enter(tester, AppStrings.title, '  Plan the release  ');
@@ -218,6 +233,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(cubit.added, hasLength(1));
       final saved = cubit.added.single;
+      expect(returned, same(saved));
       expect(saved.title, 'Plan the release');
       expect(saved.description, 'First line\nSecond line');
       expect(saved.id, matches(RegExp(r'^[0-9a-f-]{36}$')));
@@ -236,7 +252,13 @@ void main() {
     'edit prefill updates fields while preserving identity, source and creation',
     (tester) async {
       final cubit = _FormCubit(_existing);
-      await _pumpForm(tester, cubit, task: _existing);
+      TaskModel? returned;
+      await _pumpForm(
+        tester,
+        cubit,
+        task: _existing,
+        onResult: (task) => returned = task,
+      );
       expect(
         _textField(tester, AppStrings.title).controller!.text,
         _existing.title,
@@ -276,6 +298,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(cubit.updated, hasLength(1));
       final saved = cubit.updated.single;
+      expect(returned, same(saved));
       expect(saved.id, _existing.id);
       expect(saved.createdAt, _existing.createdAt);
       expect(saved.source, TaskSource.imported);

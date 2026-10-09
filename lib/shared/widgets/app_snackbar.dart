@@ -4,7 +4,7 @@ import 'package:focusdesk/core/constants/app_strings.dart';
 
 abstract final class AppSnackbar {
   static void showSuccess(BuildContext context, String message) {
-    _show(context, SnackBar(content: Text(message)));
+    _show(context, SnackBar(content: Text(message, key: UniqueKey())));
   }
 
   static void showError(BuildContext context, String message) {
@@ -15,6 +15,7 @@ abstract final class AppSnackbar {
         backgroundColor: scheme.errorContainer,
         content: Text(
           message,
+          key: UniqueKey(),
           style: Theme.of(context).textTheme.bodyMedium
               ?.copyWith(color: scheme.onErrorContainer),
         ),
@@ -30,8 +31,9 @@ abstract final class AppSnackbar {
     _show(
       context,
       SnackBar(
-        content: Text(message),
+        content: Text(message, key: UniqueKey()),
         duration: AppConstants.undoDuration,
+        persist: false,
         action: SnackBarAction(label: AppStrings.undo, onPressed: onUndo),
       ),
     );

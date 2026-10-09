@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T24
+NEXT_TASK: T25
 
 ## BUILD_CAPABILITY
 full
@@ -45,7 +45,7 @@ full
 - [x] T21 - TaskCard widget with Hero and checkbox
 - [x] T22 - Add/Edit task form screen
 - [x] T23 - Task details screen
-- [ ] T24 - Wire up tasks end-to-end and test
+- [x] T24 - Wire up tasks end-to-end and test
 - [ ] T25 - Suggested tasks: model, Dio client, remote datasource
 - [ ] T26 - Suggested repository and cubit (pagination + refresh)
 - [ ] T27 - Suggested tab UI and tab bar in Tasks
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- test/features/tasks/task_crud_flow_test.dart: real AppRouter/screens/TaskCubit/TaskRepository journey with deterministic memory datasource; three creates, description search, combined filters, edit metadata, completion, delete/exact Undo and repeated post-Undo navigation. TasksTab tests24 cases include duplicate Add, deferred busy Undo, rapid keyboard/FAB and six-second expiry.
 - features/tasks/view/task_details_screen.dart: reactive unfiltered ID lookup, Hero/full metadata/description, latest-task edit/focus routes, guarded completion and confirmed delete with exact snapshot; deletion/readback failure Retry and previous-list Undo recovery. task_details_screen_test.dart13 cases.
 - features/tasks/view/task_form_screen.dart: typed create/edit form, validated controllers, clearable calendar date, priority/done, busy controls, dirty discard and UUID-preserving retry reconciliation; test/features/tasks/task_form_screen_test.dart12 cases; router validates TaskModel argument.
 - features/tasks/widgets/task_card.dart: themed rounded interactive card, built-in animated checkbox, Hero title, completion strike, description and wrapped priority/date/import badges; test/features/tasks/task_card_test.dart10 cases; TasksTab uses it within existing swipe/undo.
@@ -114,6 +115,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- Task form returns its verified TaskModel; receiving TasksTab or Details shows success. Task routes have local ScaffoldMessenger scopes so feedback leaves with the screen and list feedback clears the FAB. Each notification content gets UniqueKey because Flutter3.47 SnackBar Hero tags interpolate content.toString(); equal unkeyed text can collide. Add FAB has heroTag:null because its keyboard exit/entry animation can retain two instances; title Heroes remain. Undo explicitly persist:false honors six seconds under current SDK defaults and defers a requested restore until another mutation finishes.
 - Details returns the exact deleted task snapshot; TasksTab awaits the route before showing Undo and suppresses covered-list errors. A newly committed deletion snapshot also offers Undo when leaving failed-readback Details with Back; Retry confirms storage before popping. Rapid repeated card taps are guarded.
 - Create form retains one draft UUID. After a failed save it reloads through TaskCubit, updating that UUID if the write had committed before readback failed; otherwise retries add. Success requires matching saved editable fields and success status. Edit preserves identity/source/creation and explicitly clears due dates.
 - TasksTab uses CustomScrollView with SliverList.builder (equivalent lazy builder) so greeting/search/filters can scroll above a small keyboard. Compact empty content fits first phone fold; keyboard metrics observer hides FAB while typing because outer Home Scaffold consumes MediaQuery insets. Undo remains retryable after failed restore. Native slow/failing first reads exist only in development QA launcher and use actual Hive afterward.
@@ -153,7 +155,7 @@ full
 
 
 
-- Resident native QA tty session48278, target tool/native_qa.dart, PID15447; production app open, Demo logged in. Four test tasks: Native details edited high/pending/local/full description; Gamma focused plan low/done/imported/description/no due; Beta high/pending/pastdue; Alpha low/pending/due9Oct (now overdue after midnight). Actual device/font/night mode restored. Use --no-dds; lowercase r reload succeeds, uppercase R intermittently loses connection leaving prior app state; cold build/run resets launcher. Accounts/tasks remain emulator-only. Task state loads once per identity; logout/replacement invalidates old reads.
+- Resident native tty session35552, production lib/main.dart, PID17383; Demo logged in, filters clear. Seven emulator-only test tasks: FlowAlpha medium/pending, FlowGamma low/pending, FlowBetaUpdated high/done/description T24nativecomplete; plus prior NativeDetailsEdited high/pending, GammaFocusedPlan low/done/imported, BetaReview high/pending/pastdue, AlphaPlan low/pending/due9Oct. Actual device/font/light restored. Use --no-dds; lowercase r reload succeeds, uppercase R intermittently loses connection leaving prior app state; cold build/run resets. Current runtime includes final T24 changes through hot reload. Task state loads once per identity; logout/replacement invalidates old reads. External ADB action helper excludes EditText so a task title identical to search text selects the card.
 - 00:00IST10Oct checkpoint:23/52 committed,29remaining;2verifiedcommits/30min,details finishing; ETA7–10h/completion07:00–10:00IST. Next checkpoint00:30IST.
 
 
