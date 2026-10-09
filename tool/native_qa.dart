@@ -37,6 +37,11 @@ import 'qa/audio_service_qa_screen.dart';
 import 'qa/audio_cubit_qa_screen.dart';
 import 'qa/music_states_qa_screen.dart';
 import 'qa/video_states_qa_screen.dart';
+import 'qa/theme_settings_qa_screen.dart';
+
+import 'package:focusdesk/features/profile/cubit/theme_cubit.dart';
+import 'package:focusdesk/features/profile/cubit/theme_state.dart';
+import 'package:focusdesk/features/profile/cubit/settings_cubit.dart';
 
 Future<void> main() async {
   try {
@@ -63,20 +68,22 @@ class _NativeQaAppState extends State<NativeQaApp> {
   void _openProduction({bool failTasks = false, bool slowTasks = false}) {
     final dependencies = widget.dependencies;
     setState(() {
-      _productionDependencies = failTasks || slowTasks
-          ? AppDependencies(
-              prefs: dependencies.prefs,
-              hive: dependencies.hive,
-              auth: dependencies.auth,
-              dio: dependencies.dio,
-              suggested: dependencies.suggested,
-              tasks: _TaskReadProbe(
+      _productionDependencies = AppDependencies(
+        prefs: dependencies.prefs,
+        hive: dependencies.hive,
+        auth: dependencies.auth,
+        dio: dependencies.dio,
+        suggested: dependencies.suggested,
+        audio: dependencies.audio,
+        audioPlayerFactory: dependencies.audioPlayerFactory,
+        tasks: failTasks || slowTasks
+            ? _TaskReadProbe(
                 dependencies.hive,
                 failOnce: failTasks,
                 delay: slowTasks ? const Duration(seconds: 8) : Duration.zero,
-              ),
-            )
-          : dependencies;
+              )
+            : dependencies.tasks,
+      );
       _showProductionApp = true;
     });
   }
@@ -93,6 +100,18 @@ class _NativeQaAppState extends State<NativeQaApp> {
     }
     return MultiBlocProvider(
       providers: [
+        BlocProvider<ThemeCubit>(
+          create: (_) => ThemeCubit(
+            widget.dependencies.prefs,
+            initialMode: widget.dependencies.initialThemeMode,
+          ),
+        ),
+        BlocProvider<SettingsCubit>(
+          create: (_) => SettingsCubit(
+            widget.dependencies.prefs,
+            initialMinutes: widget.dependencies.initialFocusMinutes,
+          ),
+        ),
         BlocProvider<AuthCubit>(
           create: (_) => AuthCubit(widget.dependencies.auth),
         ),
@@ -100,27 +119,29 @@ class _NativeQaAppState extends State<NativeQaApp> {
           create: (_) => TaskCubit(widget.dependencies.tasks)..load(),
         ),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
-        themeMode: ThemeMode.system,
-        builder: AppTheme.systemUiBuilder,
-        onGenerateRoute: AppRouter.onGenerateRoute,
-        initialRoute: '/native-qa',
-        onGenerateInitialRoutes: (_) => [
-          MaterialPageRoute<void>(
-            settings: const RouteSettings(name: '/native-qa'),
-            builder: (_) => NativeQaScreen(
-              dependencies: widget.dependencies,
-              onStartupFailure: () =>
-                  setState(() => _showStartupFailure = true),
-              onOpenProduction: _openProduction,
-              onOpenSlowTasks: () => _openProduction(slowTasks: true),
-              onOpenFailedTasks: () => _openProduction(failTasks: true),
+      child: BlocBuilder<ThemeCubit, ThemeState>(
+        builder: (context, themeState) => MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: themeState.mode,
+          builder: AppTheme.systemUiBuilder,
+          onGenerateRoute: AppRouter.onGenerateRoute,
+          initialRoute: '/native-qa',
+          onGenerateInitialRoutes: (_) => [
+            MaterialPageRoute<void>(
+              settings: const RouteSettings(name: '/native-qa'),
+              builder: (_) => NativeQaScreen(
+                dependencies: widget.dependencies,
+                onStartupFailure: () =>
+                    setState(() => _showStartupFailure = true),
+                onOpenProduction: _openProduction,
+                onOpenSlowTasks: () => _openProduction(slowTasks: true),
+                onOpenFailedTasks: () => _openProduction(failTasks: true),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -234,6 +255,15 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const ThemeSettingsQaScreen(),
+                  ),
+                ),
+                child: const Text('QA Theme and settings'),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(

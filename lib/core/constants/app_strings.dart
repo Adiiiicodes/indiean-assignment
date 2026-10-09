@@ -1,4 +1,5 @@
 abstract final class AppStrings {
+  static const invalidFocusDuration = 'Choose 15, 25, or 45 minutes.';
   static const appName = 'FocusDesk';
   static const tagline = 'A little focus, every day.';
   static const login = 'Log in';

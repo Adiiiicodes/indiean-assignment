@@ -19,6 +19,9 @@ import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
 import 'package:focusdesk/core/router/app_router.dart';
 import 'package:focusdesk/core/router/routes.dart';
+import 'package:focusdesk/features/profile/cubit/theme_cubit.dart';
+import 'package:focusdesk/features/profile/cubit/theme_state.dart';
+import 'package:focusdesk/features/profile/cubit/settings_cubit.dart';
 
 class FocusDeskApp extends StatelessWidget {
   const FocusDeskApp({required this.dependencies, super.key});
@@ -41,6 +44,18 @@ class FocusDeskApp extends StatelessWidget {
       ],
       child: MultiBlocProvider(
         providers: [
+          BlocProvider<ThemeCubit>(
+            create: (_) => ThemeCubit(
+              dependencies.prefs,
+              initialMode: dependencies.initialThemeMode,
+            ),
+          ),
+          BlocProvider<SettingsCubit>(
+            create: (_) => SettingsCubit(
+              dependencies.prefs,
+              initialMinutes: dependencies.initialFocusMinutes,
+            ),
+          ),
           BlocProvider<AuthCubit>(create: (_) => AuthCubit(dependencies.auth)),
           BlocProvider<TaskCubit>(create: (_) => TaskCubit(dependencies.tasks)),
           BlocProvider<SuggestedCubit>(
@@ -54,15 +69,18 @@ class FocusDeskApp extends StatelessWidget {
           repository: dependencies.audio,
           serviceFactory: dependencies.audioPlayerFactory,
           child: _TaskSessionBinding(
-            child: MaterialApp(
-              debugShowCheckedModeBanner: false,
-              title: AppStrings.appName,
-              theme: AppTheme.light,
-              darkTheme: AppTheme.dark,
-              themeMode: ThemeMode.system,
-              builder: AppTheme.systemUiBuilder,
-              initialRoute: Routes.splash,
-              onGenerateRoute: AppRouter.onGenerateRoute,
+            child: BlocBuilder<ThemeCubit, ThemeState>(
+              buildWhen: (previous, current) => previous.mode != current.mode,
+              builder: (context, state) => MaterialApp(
+                debugShowCheckedModeBanner: false,
+                title: AppStrings.appName,
+                theme: AppTheme.light,
+                darkTheme: AppTheme.dark,
+                themeMode: state.mode,
+                builder: AppTheme.systemUiBuilder,
+                initialRoute: Routes.splash,
+                onGenerateRoute: AppRouter.onGenerateRoute,
+              ),
             ),
           ),
         ),

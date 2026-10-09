@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:focusdesk/app.dart';
 import 'package:focusdesk/bootstrap.dart';
@@ -52,7 +53,11 @@ void main() {
     final hive = _MockHiveService();
     final initialized = Completer<void>();
     when(() => hive.init()).thenAnswer((_) => initialized.future);
-    SharedPreferences.setMockInitialValues({'marker': 'injected preferences'});
+    SharedPreferences.setMockInitialValues({
+      'marker': 'injected preferences',
+      AppConstants.themeModeKey: 'dark',
+      AppConstants.focusDurationKey: 45,
+    });
     final preferences = await SharedPreferences.getInstance();
     var preferencesLoaded = false;
     var completed = false;
@@ -77,6 +82,8 @@ void main() {
 
     expect(dependencies.hive, same(hive));
     expect(dependencies.prefs.getString('marker'), 'injected preferences');
+    expect(dependencies.initialThemeMode, ThemeMode.dark);
+    expect(dependencies.initialFocusMinutes, 45);
     verify(() => hive.init()).called(1);
   });
 

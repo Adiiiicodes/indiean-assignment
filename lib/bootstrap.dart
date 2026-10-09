@@ -18,6 +18,8 @@ import 'package:focusdesk/data/repositories/task_repository.dart';
 import 'package:focusdesk/data/repositories/suggested_repository.dart';
 import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
+import 'package:focusdesk/features/profile/cubit/theme_cubit.dart';
+import 'package:focusdesk/features/profile/cubit/settings_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppDependencies {
@@ -30,7 +32,9 @@ class AppDependencies {
     SuggestedRepository? suggested,
     AudioRepository? audio,
     AudioPlayerService Function()? audioPlayerFactory,
-  }) : auth = auth ?? AuthRepository(AuthLocalDatasource(prefs)),
+  }) : initialThemeMode = ThemeCubit.loadMode(prefs),
+       initialFocusMinutes = SettingsCubit.loadMinutes(prefs),
+       auth = auth ?? AuthRepository(AuthLocalDatasource(prefs)),
        tasks = tasks ?? TaskRepository(TaskLocalDatasource(hive)),
        audio = audio ?? const AudioRepository(),
        audioPlayerFactory = audioPlayerFactory ?? JustAudioPlayerService.new,
@@ -39,6 +43,8 @@ class AppDependencies {
         suggested ?? SuggestedRepository(SuggestedRemoteDatasource(this.dio));
   }
   final PrefsService prefs;
+  final ThemeMode initialThemeMode;
+  final int initialFocusMinutes;
   final HiveService hive;
   final AuthRepository auth;
   final TaskRepository tasks;

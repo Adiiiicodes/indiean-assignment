@@ -45,12 +45,15 @@ void main() {
 
       expect(service.getString('missing'), isNull);
       expect(service.getBool('missing'), isNull);
+      expect(service.getInt('missing'), isNull);
       await service.setString('session', value);
       await service.setBool('music', false);
+      await service.setInt('minutes', 45);
       await service.reload();
 
       expect(service.getString('session'), value);
       expect(service.getBool('music'), isFalse);
+      expect(service.getInt('minutes'), 45);
       expect(service.getString('existing'), 'keep');
       expect(service.getBool('other'), isTrue);
     },
@@ -79,10 +82,15 @@ void main() {
   );
 
   test('wrong stored types produce safe storage errors', () async {
-    SharedPreferences.setMockInitialValues({'string': true, 'bool': 'yes'});
+    SharedPreferences.setMockInitialValues({
+      'string': true,
+      'bool': 'yes',
+      'int': '45',
+    });
     final service = PrefsService(await SharedPreferences.getInstance());
     expect(() => service.getString('string'), throwsA(_safeStorageError));
     expect(() => service.getBool('bool'), throwsA(_safeStorageError));
+    expect(() => service.getInt('int'), throwsA(_safeStorageError));
   });
 
   group('injected storage failures', () {

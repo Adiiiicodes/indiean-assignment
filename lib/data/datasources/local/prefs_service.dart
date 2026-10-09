@@ -10,11 +10,16 @@ class PrefsService {
 
   bool? getBool(String key) => _read(() => _preferences.getBool(key));
 
+  int? getInt(String key) => _read(() => _preferences.getInt(key));
+
   Future<void> setString(String key, String value) =>
       _mutate(() => _preferences.setString(key, value));
 
   Future<void> setBool(String key, bool value) =>
       _mutate(() => _preferences.setBool(key, value));
+
+  Future<void> setInt(String key, int value) =>
+      _mutate(() => _preferences.setInt(key, value));
 
   Future<void> remove(String key) => _mutate(() => _preferences.remove(key));
 

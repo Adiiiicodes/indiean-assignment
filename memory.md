@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T38
+NEXT_TASK: T39
 
 ## BUILD_CAPABILITY
 full
@@ -59,7 +59,7 @@ full
 - [x] T35 - Video player screen (Chewie, network)
 - [x] T36 - Video states: buffering, completion/replay, error/retry, time labels
 - [x] T37 - Fullscreen and orientation handling
-- [ ] T38 - ThemeCubit and settings persistence
+- [x] T38 - ThemeCubit and settings persistence
 - [ ] T39 - Profile / Settings screen
 - [ ] T40 - Focus session model, datasource, repository
 - [ ] T41 - TimerCubit
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- features/profile/cubit/theme_{cubit,state}.dart and settings_{cubit,state}.dart: synchronous stored mode/duration loaders, serialized persisted updates, friendly failure retaining prior choice. PrefsService typed integer API. AppDependencies captures initial theme/duration before runApp; app-owned providers drive MaterialApp themeMode. Tests36 Cubit +4 root first-frame/system/live-restoration; bootstrap and integer storage integration augmented. Native theme_settings_qa_screen real selectors.
 - VideoOrientation serializes landscape/immersive entry and portrait/manual-bar restoration; physical display width avoids tablet/letterbox mistakes. VideoFullscreenView owns a dark responsive route with the same decoder/position, live revision controls and Exit available while busy. VideoPlayerScreen retains player ancestry across rotations and hides secondary content in landscape. Tests:9 orientation,2 fullscreen layout,4 retained-player layout,13 control cases (including170dp/text1.3 wrapped controls).
 - video/cubit/video_view_state.dart: pure7-state mapping/time formatter with12 cases. FocusVideoPlayer listener drives loading/buffering/Replay/error/Retry-local-fallback and explicit background pause. video_playback_controls.dart persistent themed controls, end-only stream-safe seek/time/mute/fullscreen;12 actual-widget cases. Native video_states_qa_screen.dart invokes actual production player with local/missing sources; no fake decoder.
 
@@ -133,6 +134,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T38 updates visible selections only after preference write succeeds; queued writes retain order, errors never reveal details, invalid requested minutes do not write. Missing/unknown values use System/25 without rewriting; wrong stored types retain PrefsService friendly StorageException/bootstrap Retry behavior. Theme applies to first Flutter Splash frame; native Android launch background remains system-configured until T45 splash polish. Defaults and theme are device settings, retained across auth changes. New AppDependencies captures startup preferences; QA production handoff constructs a fresh snapshot after native setting changes.
 - T37 uses an app-owned fullscreen route; Chewie disableFullScreenRoute prevents competing rotation/routes. Wait route.completed before restoring inline renderer. Phones restore portraitUp; tablets defer to OS with empty orientation list, and all paths restore visible system overlays. Flutter docs describe Android16/target36 restrictions; actual target36 APK on API35 emulator honors immersive bars/landscape. Native full/portrait positions04s match; fullscreen Play/Pause05s and hardware Back preserve05s. Final Wrap revision also passes04s fullscreen/portrait and decoded plain landscape/text1.3/dark. A forced portrait letterbox exposed a5.5px control overflow; Wrap plus170dp regression fixed it. No Android target downgrade.
 - T36 hides Chewie controls and consistently uses our always-visible controls beneath the actual-ratio frame. Retry reinitializes with bundled fallback (or original when no fallback configured), labels Local demo clip and starts paused. Background lifecycle policy is app-owned: VideoPlayerOptions.allowBackgroundPlayback true disables plugin automatic-resume observer; our observer still pauses all non-resumed states, waits pending work, catches late Play, and never autoplays on resume. Pause-future completion explicitly repaints enabled controls.
 
@@ -191,8 +193,8 @@ full
 
 
 
-- Production APK PID30292 (T37 native video library after player Back); no resident Flutter tty. Final144-file format/analyze/528tests and debug APK passed. Device720x1280/font1.0/light/userrotationfree0/ignoreOrientationRequestfalse restored; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
-- 02:30IST10Oct checkpoint:37/52 committed,15remaining;3verifiedcommits/30min; ETA4–6h/completion06:30–08:30IST. CurrentT37fullscreen; next checkpoint03:00IST.
+- Production APK PID31478 (T38 Tasks in persisted Dark mode against light OS); no resident Flutter tty. Final152-file format/analyze/568tests and debug APK passed. Device720x1280/font1.0/OSlight/userrotationfree0/ignoreOrientationRequestfalse; appThemeDark/defaultFocus45 intentionally persisted for T39 actualselectors; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
+- 03:00IST10Oct checkpoint:38/52 committed,14remaining;1verifiedcommit/30min; T38tests568/native selector/restart pass and finalproductionstartup pending. ETA4–6h/completion07:00–09:00IST; next checkpoint03:30IST.
 
 
 
