@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T20
+NEXT_TASK: T21
 
 ## BUILD_CAPABILITY
 full
@@ -41,7 +41,7 @@ full
 - [x] T17 - Task local datasource and repository
 - [x] T18 - TaskCubit with search, filter and undo
 - [x] T19 - Home shell with bottom navigation
-- [ ] T20 - Tasks tab UI (header, search, filters, list)
+- [x] T20 - Tasks tab UI (header, search, filters, list)
 - [ ] T21 - TaskCard widget with Hero and checkbox
 - [ ] T22 - Add/Edit task form screen
 - [ ] T23 - Task details screen
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- features/tasks/view/tasks_tab.dart: time/name greeting,400ms search, combined horizontal filters, lazy sliver list, refresh/loading/empty/error/add routes and swipe/undo retry; test/features/tasks/tasks_tab_test.dart covers20 cases. Shared EmptyView compact option keeps phone CTA visible.
 - features/home/view/home_shell.dart: four IndexedStack tabs, phone NavigationBar, rail at720dp, preserved state across resize and Back-to-Tasks handling; HomeScreen retains auth/logout; media/profile placeholders support embedded bodies and standalone routes; test/features/home/home_shell_test.dart.
 - features/tasks/cubit/{task_state,task_cubit}.dart: immutable task state, combined synchronous search/filters, CRUD/undo, friendly errors and stale-operation reset guards; app.dart binds shared task loading/reset to auth identity; test/features/tasks/{task_cubit,task_session}_test.dart and native Cubit QA.
 - data/datasources/local/task_local_datasource.dart and data/repositories/task_repository.dart: strict-identity Hive JSON task CRUD, newest-first reads, serialized mutations, exact undo snapshots and friendly storage errors; test/data/task_repository_test.dart and tool/qa/task_repository_qa_screen.dart.
@@ -110,6 +111,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- TasksTab uses CustomScrollView with SliverList.builder (equivalent lazy builder) so greeting/search/filters can scroll above a small keyboard. Compact empty content fits first phone fold; keyboard metrics observer hides FAB while typing because outer Home Scaffold consumes MediaQuery insets. Undo remains retryable after failed restore. Native slow/failing first reads exist only in development QA launcher and use actual Hive afterward.
 - TaskModel defaults: medium priority/local source/pending/empty description/Untitled task; invalid calendar dates do not normalize silently. Both due getters apply to pending tasks in local calendar days. copyWith(clearDueDate:true) explicitly clears the nullable date; clock helper methods enable deterministic tests.
 - Auth architecture: bootstrap seeds AuthRepository; one app-level AuthCubit remains across named routes. Splash owns session lookup; current-screen Login/Signup/Home listeners perform stack-clearing auth navigation. Home placeholder has a real Logout action for T15, retained when replacing shell until Profile provides final controls. Tests inject repository delay zero; production600ms stays. Native cold-reopen verifies actual prefs, not mock storage.
 - Mock passwords stored only as SHA-256 through crypto3.0.7; this is assignment demo authentication, not production security. Email normalized; input password kept exact; corrupt accounts fail without overwriting. Default auth delay600ms, injectable zero in tests.
@@ -146,7 +148,7 @@ full
 
 
 
-- Resident native production tty session70820, target lib/main.dart, PID11573; Demo User logged in, task storage empty. Use --no-dds for Flutter run to avoid intermittent Windows DDS socket refusal (deprecated --disable-dds is ignored by this SDK). Actual Journey User/demo accounts remain emulator-only. Task state loads once per authenticated identity; logout or identity replacement resets state and invalidates old reads.
+- Resident native QA tty session33072, target tool/native_qa.dart, PID13408; production app open, Demo User logged in, task storage empty. Use --no-dds for Flutter run; lowercase r reload succeeds, uppercase R intermittently loses connection and leaves prior app state, so cold build/run for QA launcher reset. Actual Journey User/demo accounts remain emulator-only. Task state loads once per authenticated identity; logout or identity replacement resets state and invalidates old reads.
 
 
 

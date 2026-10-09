@@ -63,6 +63,10 @@ abstract final class AppStrings {
   static const done = 'Done';
   static const pending = 'Pending';
   static const all = 'All';
+  static const allPriorities = 'All priorities';
+  static const morning = 'morning';
+  static const afternoon = 'afternoon';
+  static const evening = 'evening';
   static const tasks = 'Tasks';
   static const myTasks = 'My tasks';
   static const suggested = 'Suggested';

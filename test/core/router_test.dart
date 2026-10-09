@@ -19,6 +19,8 @@ import 'package:focusdesk/features/home/view/home_screen.dart';
 import 'package:focusdesk/features/profile/view/profile_screen.dart';
 import 'package:focusdesk/features/tasks/view/task_details_screen.dart';
 import 'package:focusdesk/features/tasks/view/task_form_screen.dart';
+import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
+import 'package:focusdesk/features/tasks/cubit/task_state.dart';
 import 'package:focusdesk/features/video/view/video_screen.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -26,13 +28,21 @@ import '../helpers/app_dependencies.dart';
 
 class _FrozenAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
+class _FrozenTaskCubit extends MockCubit<TaskState> implements TaskCubit {}
+
 Widget _host(GlobalKey<NavigatorState> navigatorKey) {
   final auth = _FrozenAuthCubit();
   when(() => auth.state).thenReturn(const AuthInitial());
   when(() => auth.checkSession()).thenAnswer((_) => Completer<void>().future);
+  final tasks = _FrozenTaskCubit();
+  when(() => tasks.state).thenReturn(TaskState(status: TaskStatus.success));
   addTearDown(auth.close);
-  return BlocProvider<AuthCubit>.value(
-    value: auth,
+  addTearDown(tasks.close);
+  return MultiBlocProvider(
+    providers: [
+      BlocProvider<AuthCubit>.value(value: auth),
+      BlocProvider<TaskCubit>.value(value: tasks),
+    ],
     child: MaterialApp(
       navigatorKey: navigatorKey,
       initialRoute: Routes.splash,
@@ -145,6 +155,11 @@ void main() {
     expect(login, findsOneWidget);
     expect(auth.state, const Unauthenticated());
     expect(tester.element(login).read<AuthCubit>(), same(auth));
+    final tasks = tester.element(login).read<TaskCubit>();
+    final loaded = tasks.load();
+    await tester.pump();
+    await loaded;
+    expect(tasks.state.status, TaskStatus.failure);
     Navigator.of(tester.element(login)).pushNamed(Routes.home);
     await tester.pumpAndSettle();
     expect(find.byType(HomeScreen), findsOneWidget);

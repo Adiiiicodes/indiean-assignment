@@ -9,6 +9,7 @@ class EmptyView extends StatelessWidget {
     required this.message,
     this.actionLabel,
     this.onAction,
+    this.compact = false,
   });
 
   final IconData icon;
@@ -16,6 +17,7 @@ class EmptyView extends StatelessWidget {
   final String message;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +30,7 @@ class EmptyView extends StatelessWidget {
             minHeight: constraints.hasBoundedHeight ? constraints.maxHeight : 0,
           ),
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(compact ? 16 : 24),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
@@ -36,28 +38,30 @@ class EmptyView extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Center(
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: theme.colorScheme.secondaryContainer,
-                        ),
-                        child: Icon(
-                          icon,
-                          size: 40,
-                          color: theme.colorScheme.onSecondaryContainer,
+                    if (!compact) ...[
+                      Center(
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: theme.colorScheme.secondaryContainer,
+                          ),
+                          child: Icon(
+                            icon,
+                            size: 40,
+                            color: theme.colorScheme.onSecondaryContainer,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
+                      const SizedBox(height: 24),
+                    ],
                     Text(
                       title,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.titleLarge,
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: compact ? 8 : 12),
                     Text(
                       message,
                       textAlign: TextAlign.center,
@@ -66,7 +70,7 @@ class EmptyView extends StatelessWidget {
                       ),
                     ),
                     if (buttonLabel != null && onAction != null) ...[
-                      const SizedBox(height: 24),
+                      SizedBox(height: compact ? 12 : 24),
                       Center(
                         child: AppButton(
                           label: buttonLabel,

@@ -77,7 +77,8 @@ Future<void> _login(WidgetTester tester, AuthCubit auth) async {
   );
   await tester.pump(const Duration(milliseconds: 1));
   await login;
-  await tester.pumpAndSettle();
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
 }
 
 void main() {
@@ -159,11 +160,13 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 1));
     await replacement;
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(repository.reads, 2);
     expect(tasks.state.query, isEmpty);
     oldRead.complete([repository.saved]);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1));
     expect(tasks.state.tasks, isEmpty);
     final newTask = TaskModel(id: 'replacement', title: 'Current session task');
     newRead.complete([newTask]);

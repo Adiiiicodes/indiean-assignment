@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/features/audio/view/music_screen.dart';
 import 'package:focusdesk/features/profile/view/profile_screen.dart';
+import 'package:focusdesk/features/tasks/view/tasks_tab.dart';
 import 'package:focusdesk/features/video/view/video_screen.dart';
 
 class HomeShell extends StatefulWidget {
@@ -19,7 +20,7 @@ class _HomeShellState extends State<HomeShell> {
   int _selectedIndex = 0;
 
   static const _defaultTabs = <Widget>[
-    _TasksPlaceholder(),
+    TasksTab(),
     MusicScreen(embedded: true),
     VideoScreen(embedded: true),
     ProfileScreen(embedded: true),
@@ -123,20 +124,6 @@ class _HomeShellState extends State<HomeShell> {
           ),
         );
       },
-    );
-  }
-}
-
-class _TasksPlaceholder extends StatelessWidget {
-  const _TasksPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        AppStrings.tasks,
-        style: Theme.of(context).textTheme.titleLarge,
-      ),
     );
   }
 }

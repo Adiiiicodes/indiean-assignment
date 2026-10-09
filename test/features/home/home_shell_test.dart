@@ -1,11 +1,28 @@
 import 'dart:ui' show Tristate;
 
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:focusdesk/core/constants/app_constants.dart';
 import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
+import 'package:focusdesk/data/models/user_model.dart';
+import 'package:focusdesk/features/audio/view/music_screen.dart';
+import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
+import 'package:focusdesk/features/auth/cubit/auth_state.dart';
 import 'package:focusdesk/features/home/view/home_shell.dart';
+import 'package:focusdesk/features/profile/view/profile_screen.dart';
+import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
+import 'package:focusdesk/features/tasks/cubit/task_state.dart';
+import 'package:focusdesk/features/tasks/view/tasks_tab.dart';
+import 'package:focusdesk/features/video/view/video_screen.dart';
+import 'package:mocktail/mocktail.dart';
+
+class _FrozenAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
+
+class _FrozenTaskCubit extends MockCubit<TaskState> implements TaskCubit {}
 
 const _labels = [
   AppStrings.tasks,
@@ -13,6 +30,13 @@ const _labels = [
   AppStrings.videos,
   AppStrings.profile,
 ];
+
+const _tabTypes = {
+  AppStrings.tasks: TasksTab,
+  AppStrings.music: MusicScreen,
+  AppStrings.videos: VideoScreen,
+  AppStrings.profile: ProfileScreen,
+};
 
 class _CounterTab extends StatefulWidget {
   const _CounterTab(this.label);
@@ -77,15 +101,36 @@ Future<void> _pumpShell(
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
-  await tester.pumpWidget(
-    MaterialApp(
-      theme: brightness == Brightness.light ? AppTheme.light : AppTheme.dark,
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context)
-            .copyWith(textScaler: const TextScaler.linear(1.3)),
-        child: child!,
+  final auth = _FrozenAuthCubit();
+  when(() => auth.state).thenReturn(
+    Authenticated(
+      UserModel(
+        id: 'demo-user',
+        name: AppConstants.demoName,
+        email: AppConstants.demoEmail,
+        createdAt: DateTime.utc(2026, 10, 9),
       ),
-      home: shell,
+    ),
+  );
+  final tasks = _FrozenTaskCubit();
+  when(() => tasks.state).thenReturn(TaskState(status: TaskStatus.success));
+  addTearDown(auth.close);
+  addTearDown(tasks.close);
+  await tester.pumpWidget(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>.value(value: auth),
+        BlocProvider<TaskCubit>.value(value: tasks),
+      ],
+      child: MaterialApp(
+        theme: brightness == Brightness.light ? AppTheme.light : AppTheme.dark,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: const TextScaler.linear(1.3)),
+          child: child!,
+        ),
+        home: shell,
+      ),
     ),
   );
   await tester.pumpAndSettle();
@@ -113,7 +158,13 @@ void main() {
           for (final label in _labels) {
             await _selectTab(tester, label);
             _expectSelected(tester, label);
-            expect(find.text(label), findsNWidgets(2));
+            for (final entry in _tabTypes.entries) {
+              expect(
+                find.byType(entry.value),
+                entry.key == label ? findsOneWidget : findsNothing,
+                reason: entry.key,
+              );
+            }
             expect(tester.takeException(), isNull);
           }
         },

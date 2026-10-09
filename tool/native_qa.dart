@@ -11,6 +11,11 @@ import 'package:focusdesk/core/theme/app_colors.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
 import 'package:focusdesk/core/router/app_router.dart';
 import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
+import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
+import 'package:focusdesk/data/datasources/local/hive_service.dart';
+import 'package:focusdesk/data/datasources/local/task_local_datasource.dart';
+import 'package:focusdesk/data/models/task_model.dart';
+import 'package:focusdesk/data/repositories/task_repository.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -45,17 +50,46 @@ class NativeQaApp extends StatefulWidget {
 class _NativeQaAppState extends State<NativeQaApp> {
   bool _showProductionApp = false;
   bool _showStartupFailure = false;
+  AppDependencies? _productionDependencies;
+
+  void _openProduction({bool failTasks = false, bool slowTasks = false}) {
+    final dependencies = widget.dependencies;
+    setState(() {
+      _productionDependencies = failTasks || slowTasks
+          ? AppDependencies(
+              prefs: dependencies.prefs,
+              hive: dependencies.hive,
+              auth: dependencies.auth,
+              tasks: _TaskReadProbe(
+                dependencies.hive,
+                failOnce: failTasks,
+                delay: slowTasks ? const Duration(seconds: 8) : Duration.zero,
+              ),
+            )
+          : dependencies;
+      _showProductionApp = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     if (_showProductionApp) {
-      return FocusDeskApp(dependencies: widget.dependencies);
+      return FocusDeskApp(
+        dependencies: _productionDependencies ?? widget.dependencies,
+      );
     }
     if (_showStartupFailure) {
       return const BootstrapErrorApp(failure: StorageException());
     }
-    return BlocProvider<AuthCubit>(
-      create: (_) => AuthCubit(widget.dependencies.auth),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthCubit>(
+          create: (_) => AuthCubit(widget.dependencies.auth),
+        ),
+        BlocProvider<TaskCubit>(
+          create: (_) => TaskCubit(widget.dependencies.tasks)..load(),
+        ),
+      ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
@@ -71,7 +105,9 @@ class _NativeQaAppState extends State<NativeQaApp> {
               dependencies: widget.dependencies,
               onStartupFailure: () =>
                   setState(() => _showStartupFailure = true),
-              onOpenProduction: () => setState(() => _showProductionApp = true),
+              onOpenProduction: _openProduction,
+              onOpenSlowTasks: () => _openProduction(slowTasks: true),
+              onOpenFailedTasks: () => _openProduction(failTasks: true),
             ),
           ),
         ],
@@ -84,12 +120,16 @@ class NativeQaScreen extends StatefulWidget {
   const NativeQaScreen({
     required this.onOpenProduction,
     required this.onStartupFailure,
+    required this.onOpenSlowTasks,
+    required this.onOpenFailedTasks,
     required this.dependencies,
     super.key,
   });
 
   final VoidCallback onOpenProduction;
   final VoidCallback onStartupFailure;
+  final VoidCallback onOpenSlowTasks;
+  final VoidCallback onOpenFailedTasks;
   final AppDependencies dependencies;
 
   @override
@@ -275,11 +315,45 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
                 onPressed: _running ? null : widget.onOpenProduction,
                 child: const Text('Open production app'),
               ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: _running ? null : widget.onOpenSlowTasks,
+                child: const Text('Open production with slow tasks'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: _running ? null : widget.onOpenFailedTasks,
+                child: const Text('Open production with task read failure'),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+}
+
+// Fault injection is confined to this development entrypoint. After the first
+// read, every operation uses the ordinary repository and actual Hive storage.
+class _TaskReadProbe extends TaskRepository {
+  _TaskReadProbe(
+    HiveService hive, {
+    this.failOnce = false,
+    this.delay = Duration.zero,
+  }) : super(TaskLocalDatasource(hive));
+
+  final bool failOnce;
+  final Duration delay;
+  bool _firstRead = true;
+
+  @override
+  Future<List<TaskModel>> getTasks() async {
+    if (_firstRead) {
+      _firstRead = false;
+      if (delay != Duration.zero) await Future<void>.delayed(delay);
+      if (failOnce) throw const StorageException();
+    }
+    return super.getTasks();
   }
 }
 
