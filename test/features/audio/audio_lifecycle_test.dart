@@ -7,6 +7,7 @@ import 'package:focusdesk/data/datasources/media/audio_player_service.dart';
 import 'package:focusdesk/data/repositories/audio_repository.dart';
 import 'package:focusdesk/features/audio/cubit/audio_cubit.dart';
 import 'package:focusdesk/features/audio/widgets/audio_lifecycle_binding.dart';
+import 'package:focusdesk/core/errors/app_exception.dart';
 
 import '../../helpers/fake_audio_player_service.dart';
 
@@ -24,6 +25,69 @@ Future<void> _widgetEvents(WidgetTester tester) async {
 }
 
 void main() {
+  testWidgets('logout stop keeps an unread decoder lazy', (tester) async {
+    var creations = 0;
+    late BuildContext scope;
+    await tester.pumpWidget(
+      AudioLifecycleBinding(
+        repository: const AudioRepository(),
+        serviceFactory: () {
+          creations++;
+          return FakeAudioPlayerService();
+        },
+        child: Builder(
+          builder: (context) {
+            scope = context;
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+    await AudioLifecycleBinding.stopIfCreated(scope);
+    expect(creations, 0);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('logout stop pauses and resets the existing shared decoder', (
+    tester,
+  ) async {
+    final player = FakeAudioPlayerService();
+    late BuildContext scope;
+    await tester.pumpWidget(
+      AudioLifecycleBinding(
+        repository: const AudioRepository(),
+        serviceFactory: () => player,
+        child: Builder(
+          builder: (context) {
+            scope = context;
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+    final owned = scope.read<AudioCubit>();
+    await owned.init();
+    await owned.selectTrack(2);
+    await owned.play();
+    await AudioLifecycleBinding.stopIfCreated(scope);
+    expect(player.status, AppPlayerStatus.paused);
+    expect(player.index, 0);
+    expect(player.position, Duration.zero);
+    expect(player.calls('dispose'), 0);
+    await owned.play();
+    player.failures['pause'] = StateError('Private decoder failure');
+    await expectLater(
+      AudioLifecycleBinding.stopIfCreated(scope),
+      throwsA(isA<MediaException>()),
+    );
+    expect(player.status, AppPlayerStatus.playing);
+    expect(owned.state.status, AppPlayerStatus.error);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await _widgetEvents(tester);
+    expect(player.calls('dispose'), 1);
+    expect(tester.takeException(), isNull);
+  });
+
   late FakeAudioPlayerService service;
   late AudioCubit audio;
   setUp(() {

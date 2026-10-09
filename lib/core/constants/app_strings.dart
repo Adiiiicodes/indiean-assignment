@@ -172,6 +172,12 @@ abstract final class AppStrings {
       'This removes tasks and sessions. Your account stays on this device.';
   static const dataCleared = 'Task and focus data cleared';
   static const about = 'About FocusDesk';
+  static const logoutTitle = 'Log out of FocusDesk?';
+  static const logoutMessage =
+      'Your saved data stays on this device. Music will stop.';
+  static const statsPlaceholder = 'Your focus summary will appear here.';
+  static const packagesUsed =
+      'Flutter · flutter_bloc · Dio · Hive · shared_preferences · just_audio · video_player · Chewie';
   static const mockAuthNote =
       'Demo authentication · data stored on this device';
   static const focusSession = 'Focus session';
@@ -196,5 +202,6 @@ abstract final class AppStrings {
 
   static String requiredField(String label) => '$label is required.';
   static String minutes(int value) => '$value min';
+  static String version(String value) => 'Version $value';
   static String greeting(String period, String name) => 'Good $period, $name';
 }

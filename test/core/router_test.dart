@@ -23,6 +23,12 @@ import 'package:focusdesk/features/auth/cubit/auth_state.dart';
 import 'package:focusdesk/features/focus/view/focus_screen.dart';
 import 'package:focusdesk/features/home/view/home_screen.dart';
 import 'package:focusdesk/features/profile/view/profile_screen.dart';
+import 'package:focusdesk/features/profile/cubit/profile_cubit.dart';
+import 'package:focusdesk/features/profile/cubit/profile_state.dart';
+import 'package:focusdesk/features/profile/cubit/theme_cubit.dart';
+import 'package:focusdesk/features/profile/cubit/theme_state.dart';
+import 'package:focusdesk/features/profile/cubit/settings_cubit.dart';
+import 'package:focusdesk/features/profile/cubit/settings_state.dart';
 import 'package:focusdesk/features/tasks/view/task_details_screen.dart';
 import 'package:focusdesk/features/tasks/view/task_form_screen.dart';
 import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
@@ -38,6 +44,14 @@ class _FrozenAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 class _FrozenTaskCubit extends MockCubit<TaskState> implements TaskCubit {}
 
 class _FrozenAudioCubit extends MockCubit<AudioState> implements AudioCubit {}
+
+class _FrozenProfileCubit extends MockCubit<ProfileState>
+    implements ProfileCubit {}
+
+class _FrozenThemeCubit extends MockCubit<ThemeState> implements ThemeCubit {}
+
+class _FrozenSettingsCubit extends MockCubit<SettingsState>
+    implements SettingsCubit {}
 
 Widget _host(GlobalKey<NavigatorState> navigatorKey, {TaskModel? task}) {
   final auth = _FrozenAuthCubit();
@@ -59,11 +73,23 @@ Widget _host(GlobalKey<NavigatorState> navigatorKey, {TaskModel? task}) {
   );
   when(() => audio.init()).thenAnswer((_) async {});
   addTearDown(audio.close);
+  final profile = _FrozenProfileCubit();
+  when(() => profile.state).thenReturn(const ProfileState());
+  final theme = _FrozenThemeCubit();
+  when(() => theme.state).thenReturn(const ThemeState());
+  final settings = _FrozenSettingsCubit();
+  when(() => settings.state).thenReturn(const SettingsState());
+  addTearDown(profile.close);
+  addTearDown(theme.close);
+  addTearDown(settings.close);
   return MultiBlocProvider(
     providers: [
       BlocProvider<AuthCubit>.value(value: auth),
       BlocProvider<TaskCubit>.value(value: tasks),
       BlocProvider<AudioCubit>.value(value: audio),
+      BlocProvider<ProfileCubit>.value(value: profile),
+      BlocProvider<ThemeCubit>.value(value: theme),
+      BlocProvider<SettingsCubit>.value(value: settings),
     ],
     child: MaterialApp(
       navigatorKey: navigatorKey,

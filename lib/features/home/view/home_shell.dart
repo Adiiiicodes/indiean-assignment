@@ -23,7 +23,7 @@ class _HomeShellState extends State<HomeShell> {
     TasksWorkspace(active: _selectedIndex == 0),
     MusicScreen(embedded: true, active: _selectedIndex == 1),
     const VideoScreen(embedded: true),
-    const ProfileScreen(embedded: true),
+    ProfileScreen(embedded: true, active: _selectedIndex == 3),
   ];
 
   void _selectTab(int index) {

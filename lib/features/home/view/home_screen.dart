@@ -1,8 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/router/routes.dart';
 import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:focusdesk/features/auth/cubit/auth_state.dart';
@@ -24,17 +21,7 @@ class HomeScreen extends StatelessWidget {
           AppSnackbar.showError(context, state.message);
         }
       },
-      builder: (context, state) => HomeShell(
-        actions: [
-          IconButton(
-            tooltip: AppStrings.logout,
-            onPressed: state is AuthLoading
-                ? null
-                : () => unawaited(context.read<AuthCubit>().logout()),
-            icon: const Icon(Icons.logout_rounded),
-          ),
-        ],
-      ),
+      builder: (context, state) => const HomeShell(),
     );
   }
 }

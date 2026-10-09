@@ -20,6 +20,7 @@ import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
 import 'package:focusdesk/features/profile/cubit/theme_cubit.dart';
 import 'package:focusdesk/features/profile/cubit/settings_cubit.dart';
+import 'package:focusdesk/data/repositories/profile_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppDependencies {
@@ -32,6 +33,7 @@ class AppDependencies {
     SuggestedRepository? suggested,
     AudioRepository? audio,
     AudioPlayerService Function()? audioPlayerFactory,
+    ProfileRepository? profile,
   }) : initialThemeMode = ThemeCubit.loadMode(prefs),
        initialFocusMinutes = SettingsCubit.loadMinutes(prefs),
        auth = auth ?? AuthRepository(AuthLocalDatasource(prefs)),
@@ -41,6 +43,7 @@ class AppDependencies {
        dio = ApiClient(dio: dio).dio {
     this.suggested =
         suggested ?? SuggestedRepository(SuggestedRemoteDatasource(this.dio));
+    this.profile = profile ?? ProfileRepository(this.auth, this.tasks, hive);
   }
   final PrefsService prefs;
   final ThemeMode initialThemeMode;
@@ -52,6 +55,7 @@ class AppDependencies {
   late final SuggestedRepository suggested;
   final AudioRepository audio;
   final AudioPlayerService Function() audioPlayerFactory;
+  late final ProfileRepository profile;
 }
 
 Future<AppDependencies> bootstrap({

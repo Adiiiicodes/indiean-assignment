@@ -22,6 +22,10 @@ import 'package:focusdesk/core/router/routes.dart';
 import 'package:focusdesk/features/profile/cubit/theme_cubit.dart';
 import 'package:focusdesk/features/profile/cubit/theme_state.dart';
 import 'package:focusdesk/features/profile/cubit/settings_cubit.dart';
+import 'package:focusdesk/features/profile/cubit/profile_cubit.dart';
+import 'package:focusdesk/data/repositories/profile_repository.dart';
+import 'package:focusdesk/features/tasks/cubit/task_state.dart';
+import 'package:focusdesk/core/errors/app_exception.dart';
 
 class FocusDeskApp extends StatelessWidget {
   const FocusDeskApp({required this.dependencies, super.key});
@@ -35,6 +39,9 @@ class FocusDeskApp extends StatelessWidget {
         RepositoryProvider<PrefsService>.value(value: dependencies.prefs),
         RepositoryProvider<HiveService>.value(value: dependencies.hive),
         RepositoryProvider<AuthRepository>.value(value: dependencies.auth),
+        RepositoryProvider<ProfileRepository>.value(
+          value: dependencies.profile,
+        ),
         RepositoryProvider<TaskRepository>.value(value: dependencies.tasks),
         RepositoryProvider<AudioRepository>.value(value: dependencies.audio),
         RepositoryProvider<Dio>.value(value: dependencies.dio),
@@ -68,18 +75,34 @@ class FocusDeskApp extends StatelessWidget {
         child: AudioLifecycleBinding(
           repository: dependencies.audio,
           serviceFactory: dependencies.audioPlayerFactory,
-          child: _TaskSessionBinding(
-            child: BlocBuilder<ThemeCubit, ThemeState>(
-              buildWhen: (previous, current) => previous.mode != current.mode,
-              builder: (context, state) => MaterialApp(
-                debugShowCheckedModeBanner: false,
-                title: AppStrings.appName,
-                theme: AppTheme.light,
-                darkTheme: AppTheme.dark,
-                themeMode: state.mode,
-                builder: AppTheme.systemUiBuilder,
-                initialRoute: Routes.splash,
-                onGenerateRoute: AppRouter.onGenerateRoute,
+          child: BlocProvider<ProfileCubit>(
+            create: (context) => ProfileCubit(
+              dependencies.profile,
+              context.read<AuthCubit>(),
+              stopAudio: () => AudioLifecycleBinding.stopIfCreated(context),
+              refreshTasks: () async {
+                final tasks = context.read<TaskCubit>();
+                tasks.reset();
+                context.read<SuggestedCubit>().reset();
+                await tasks.load();
+                if (tasks.state.status == TaskStatus.failure) {
+                  throw const StorageException();
+                }
+              },
+            ),
+            child: _TaskSessionBinding(
+              child: BlocBuilder<ThemeCubit, ThemeState>(
+                buildWhen: (previous, current) => previous.mode != current.mode,
+                builder: (context, state) => MaterialApp(
+                  debugShowCheckedModeBanner: false,
+                  title: AppStrings.appName,
+                  theme: AppTheme.light,
+                  darkTheme: AppTheme.dark,
+                  themeMode: state.mode,
+                  builder: AppTheme.systemUiBuilder,
+                  initialRoute: Routes.splash,
+                  onGenerateRoute: AppRouter.onGenerateRoute,
+                ),
               ),
             ),
           ),

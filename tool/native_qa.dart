@@ -42,6 +42,8 @@ import 'qa/theme_settings_qa_screen.dart';
 import 'package:focusdesk/features/profile/cubit/theme_cubit.dart';
 import 'package:focusdesk/features/profile/cubit/theme_state.dart';
 import 'package:focusdesk/features/profile/cubit/settings_cubit.dart';
+import 'package:focusdesk/features/profile/cubit/profile_cubit.dart';
+import 'package:focusdesk/features/audio/widgets/audio_lifecycle_binding.dart';
 
 Future<void> main() async {
   try {
@@ -117,6 +119,18 @@ class _NativeQaAppState extends State<NativeQaApp> {
         ),
         BlocProvider<TaskCubit>(
           create: (_) => TaskCubit(widget.dependencies.tasks)..load(),
+        ),
+        BlocProvider<ProfileCubit>(
+          create: (context) => ProfileCubit(
+            widget.dependencies.profile,
+            context.read<AuthCubit>(),
+            stopAudio: () => AudioLifecycleBinding.stopIfCreated(context),
+            refreshTasks: () async {
+              final tasks = context.read<TaskCubit>();
+              tasks.reset();
+              await tasks.load();
+            },
+          ),
         ),
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(

@@ -125,6 +125,9 @@ class _AudioCubit extends Cubit<AudioState> implements AudioCubit {
   Future<void> pause() async =>
       emit(state.copyWith(status: AppPlayerStatus.paused));
   @override
+  Future<void> stopForLogout() => stop();
+
+  @override
   Future<void> stop() async => emit(
     state.copyWith(status: AppPlayerStatus.paused, position: Duration.zero),
   );

@@ -19,6 +19,14 @@ class AudioLifecycleBinding extends StatefulWidget {
   final AudioPlayerService Function() serviceFactory;
   final Widget child;
 
+  /// Logout stops an existing decoder without initializing an unused playlist.
+  static Future<void> stopIfCreated(BuildContext context) =>
+      context
+          .findAncestorStateOfType<_AudioLifecycleBindingState>()
+          ?._audio
+          ?.stopForLogout() ??
+      Future<void>.value();
+
   @override
   State<AudioLifecycleBinding> createState() => _AudioLifecycleBindingState();
 }

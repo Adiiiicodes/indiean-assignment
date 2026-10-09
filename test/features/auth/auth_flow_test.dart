@@ -133,7 +133,21 @@ void main() {
       expect(accounts, isNot(contains(_newPassword)));
       expect(accounts, isNot(contains(AppConstants.demoPassword)));
 
-      await _tapVisible(tester, find.byTooltip(AppStrings.logout));
+      await _tapVisible(
+        tester,
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.text(AppStrings.profile),
+        ),
+      );
+      await _tapVisible(tester, find.byKey(const ValueKey('profile-logout')));
+      await _tapVisible(
+        tester,
+        find.descendant(
+          of: find.byType(Dialog),
+          matching: find.widgetWithText(FilledButton, AppStrings.logout),
+        ),
+      );
       _expectRoot(tester, find.byType(LoginScreen));
       expect(find.byType(HomeScreen), findsNothing);
       expect(_auth(tester, find.byType(LoginScreen)), same(sharedAuth));

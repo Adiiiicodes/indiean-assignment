@@ -175,12 +175,16 @@ class AudioCubit extends Cubit<AudioState> {
         .whenComplete(() => _actionFuture = null);
   }
 
-  Future<void> _perform(Future<void> Function() action) async {
+  Future<void> _perform(
+    Future<void> Function() action, {
+    bool reportFailure = false,
+  }) async {
     emit(state.copyWith(isBusy: true, clearError: true));
     try {
       await action();
     } catch (error) {
       _failure(error);
+      if (reportFailure) throw const MediaException();
     } finally {
       if (_live) emit(state.copyWith(isBusy: false));
     }
@@ -277,7 +281,12 @@ class AudioCubit extends Cubit<AudioState> {
     }
   }
 
-  Future<void> stop() async {
+  Future<void> stop() => _stop();
+
+  /// Session logout must know if the decoder could not actually pause.
+  Future<void> stopForLogout() => _stop(reportFailure: true);
+
+  Future<void> _stop({bool reportFailure = false}) async {
     if (!_live || _stopping) return;
     _retainCompleted = false;
     _stopping = true;
@@ -299,7 +308,7 @@ class AudioCubit extends Cubit<AudioState> {
             ),
           );
         }
-      });
+      }, reportFailure: reportFailure);
     } finally {
       _stopping = false;
     }

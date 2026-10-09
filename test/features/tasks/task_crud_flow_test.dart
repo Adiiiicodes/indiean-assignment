@@ -14,6 +14,12 @@ import 'package:focusdesk/data/repositories/task_repository.dart';
 import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:focusdesk/features/auth/cubit/auth_state.dart';
 import 'package:focusdesk/features/home/view/home_screen.dart';
+import 'package:focusdesk/features/profile/cubit/profile_cubit.dart';
+import 'package:focusdesk/features/profile/cubit/profile_state.dart';
+import 'package:focusdesk/features/profile/cubit/theme_cubit.dart';
+import 'package:focusdesk/features/profile/cubit/theme_state.dart';
+import 'package:focusdesk/features/profile/cubit/settings_cubit.dart';
+import 'package:focusdesk/features/profile/cubit/settings_state.dart';
 import 'package:focusdesk/features/suggested/cubit/suggested_cubit.dart';
 import 'package:focusdesk/features/suggested/cubit/suggested_state.dart';
 import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
@@ -26,6 +32,13 @@ import 'package:focusdesk/shared/widgets/app_text_field.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _AuthenticatedCubit extends MockCubit<AuthState> implements AuthCubit {}
+
+class _FrozenProfile extends MockCubit<ProfileState> implements ProfileCubit {}
+
+class _FrozenTheme extends MockCubit<ThemeState> implements ThemeCubit {}
+
+class _FrozenSettings extends MockCubit<SettingsState>
+    implements SettingsCubit {}
 
 class _EmptySuggestions extends MockCubit<SuggestedState>
     implements SuggestedCubit {}
@@ -138,6 +151,17 @@ void main() {
         ),
       );
       addTearDown(cubit.close);
+      final profile = _FrozenProfile();
+      final theme = _FrozenTheme();
+      final settings = _FrozenSettings();
+      when(() => profile.state)
+          .thenReturn(ProfileState(user: (auth.state as Authenticated).user));
+      when(() => theme.state)
+          .thenReturn(const ThemeState(mode: ThemeMode.light));
+      when(() => settings.state).thenReturn(const SettingsState());
+      addTearDown(profile.close);
+      addTearDown(theme.close);
+      addTearDown(settings.close);
       addTearDown(auth.close);
       addTearDown(suggestions.close);
       await cubit.load();
@@ -147,6 +171,9 @@ void main() {
             BlocProvider<AuthCubit>.value(value: auth),
             BlocProvider<TaskCubit>.value(value: cubit),
             BlocProvider<SuggestedCubit>.value(value: suggestions),
+            BlocProvider<ProfileCubit>.value(value: profile),
+            BlocProvider<ThemeCubit>.value(value: theme),
+            BlocProvider<SettingsCubit>.value(value: settings),
           ],
           child: MaterialApp(
             theme: AppTheme.light,
