@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T28
+NEXT_TASK: T29
 
 ## BUILD_CAPABILITY
 full
@@ -49,7 +49,7 @@ full
 - [x] T25 - Suggested tasks: model, Dio client, remote datasource
 - [x] T26 - Suggested repository and cubit (pagination + refresh)
 - [x] T27 - Suggested tab UI and tab bar in Tasks
-- [ ] T28 - API flow verification
+- [x] T28 - API flow verification
 - [ ] T29 - Verify media URLs and add local fallbacks
 - [ ] T30 - Track model and AudioPlayerService (just_audio wrapper)
 - [ ] T31 - AudioCubit
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- test/features/suggested/suggested_import_flow_test.dart: two real router/Home/API-Dio-adapter/datasource/repository/Cubit + JSON-memory task persistence UI journeys. Stable import/Added/MyTasks/page20/clamped final3/end and offline/malformed Retry recovery/privacy assertions. Actual Android live/offline/edit/delete evidence in logs.
 - features/tasks/view/tasks_workspace.dart: retained My Tasks/Suggested TabBarView, lazy API first visit and outer Home tab active propagation. features/suggested/view/suggested_view.dart: keepalive list, infinite paging/refresh/loading/empty/error/retry, full-title responsive cards and verified Add/Added/snackbar. Tests14 view+3 workspace; MyTasks hidden error regression; shell active assertions.
 - data/repositories/suggested_repository.dart and features/suggested/cubit/: immutable pagination/import state, live offsets and retained error retry, serialized stable-ID imports through shared TaskCubit, Added tracking after delete/Undo/clear; app-scoped DI and auth cache reset. Tests28 plus1 app-session test; native suggested_cubit_qa_screen.dart.
 - data/models/suggested_{task,page}_model.dart: strict typed API items, stable imported Task mapper, immutable page/count/progress validation; data/datasources/remote/{api_client,suggested_remote_datasource}.dart: injected Dio/baseURL/timeouts/debug metadata logging and friendly fetch errors. AppDependencies.dio and app provider; model25/datasource26 tests plus injected-Dio bootstrap case. tool/qa/suggested_api_qa_screen.dart live/failure Android probe.
@@ -160,7 +161,7 @@ full
 
 
 
-- Resident native tty session99327, lib/main.dart, PID19565; production Suggested open after live paging/refresh/narrow dark check. Demo session and nine agent-only tasks (including suggested-1 and suggested-2) retained. Actual device/font/light restored. Use --no-dds; lowercase r reload succeeds, uppercase R intermittently loses connection leaving prior app state; cold build/run resets. Task state loads once per identity; logout/replacement invalidates old reads. External ADB helper excludes EditText. Native tab labels include newline Tab n of m. Test ensureVisible should skip already-hit-testable controls inside TabBarView; otherwise it may move to an adjacent page.
+- Resident native tty session32372, lib/main.dart, PID20552; production Suggested open at classic-movie card after native offline Retry/import/edit/delete. WiFi/data re-enabled, default network104. Demo session and nine agent-only tasks (suggested-1 and suggested-2 retained; temporary suggested-3 edited then deleted). Actual device/font/light restored. Use --no-dds; lowercase r reload succeeds, uppercase R intermittently loses connection leaving prior app state; cold build/run resets. Task state loads once per identity; logout/replacement invalidates old reads. External ADB helper excludes EditText. Native tab labels include newline Tab n of m. Test ensureVisible should skip already-hit-testable controls inside TabBarView; otherwise it may move to an adjacent page.
 - 00:30IST10Oct checkpoint:26/52 committed,26remaining;3verifiedcommits/30min,pagination verifying; ETA6–9h/completion06:30–09:30IST. Next checkpoint01:00IST.
 
 
