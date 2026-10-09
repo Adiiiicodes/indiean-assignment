@@ -2,27 +2,45 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:focusdesk/main.dart' as production;
+import 'package:focusdesk/app.dart';
+import 'package:focusdesk/core/theme/app_colors.dart';
+import 'package:focusdesk/core/theme/app_theme.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 void main() => runApp(const NativeQaApp());
 
-class NativeQaApp extends StatelessWidget {
+class NativeQaApp extends StatefulWidget {
   const NativeQaApp({super.key});
 
   @override
+  State<NativeQaApp> createState() => _NativeQaAppState();
+}
+
+class _NativeQaAppState extends State<NativeQaApp> {
+  bool _showProductionApp = false;
+
+  @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    if (_showProductionApp) return const FocusDeskApp();
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: NativeQaScreen(),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
+      builder: AppTheme.systemUiBuilder,
+      home: NativeQaScreen(
+        onOpenProduction: () => setState(() => _showProductionApp = true),
+      ),
     );
   }
 }
 
 class NativeQaScreen extends StatefulWidget {
-  const NativeQaScreen({super.key});
+  const NativeQaScreen({required this.onOpenProduction, super.key});
+
+  final VoidCallback onOpenProduction;
 
   @override
   State<NativeQaScreen> createState() => _NativeQaScreenState();
@@ -31,12 +49,6 @@ class NativeQaScreen extends StatefulWidget {
 class _NativeQaScreenState extends State<NativeQaScreen> {
   String _result = 'Ready for an actual Android storage probe.';
   bool _running = false;
-
-  Future<void> _openProductionApp() async {
-    // Let the current native pointer packet finish before replacing the root.
-    await Future<void>.delayed(const Duration(milliseconds: 200));
-    if (mounted) production.main();
-  }
 
   Future<void> _probeDependencies() async {
     setState(() {
@@ -110,8 +122,119 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
               Text(_result, key: const ValueKey('qa-result')),
               const SizedBox(height: 24),
               OutlinedButton(
-                onPressed: _running ? null : _openProductionApp,
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const ThemeQaScreen(),
+                  ),
+                ),
+                child: const Text('Theme gallery'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: _running ? null : widget.onOpenProduction,
                 child: const Text('Open production app'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ThemeQaScreen extends StatelessWidget {
+  const ThemeQaScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Scaffold(
+      appBar: AppBar(title: Text('Theme: ${theme.brightness.name}')),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: AppColors.headerGradient(scheme),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  'A little focus, every day.',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: scheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Plan a calm day',
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Pick one task and make room for it.',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const TextField(
+                decoration: InputDecoration(labelText: 'Task title'),
+              ),
+              const SizedBox(height: 16),
+              const TextField(
+                decoration: InputDecoration(
+                  labelText: 'Validation example',
+                  errorText: 'Enter at least three characters.',
+                ),
+              ),
+              const SizedBox(height: 20),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  FilledButton(
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Themed action works.')),
+                    ),
+                    child: const Text('Start focus'),
+                  ),
+                  OutlinedButton(
+                    onPressed: () => FocusScope.of(context).unfocus(),
+                    child: const Text('Cancel'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final priority in ['high', 'medium', 'low'])
+                    Chip(
+                      label: Text(priority),
+                      labelStyle: theme.textTheme.labelMedium?.copyWith(
+                        color: AppColors.priority(priority, theme.brightness),
+                      ),
+                      backgroundColor: AppColors.priority(
+                        priority,
+                        theme.brightness,
+                      ).withValues(alpha: 0.12),
+                    ),
+                ],
               ),
             ],
           ),

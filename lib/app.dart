@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:focusdesk/core/theme/app_theme.dart';
 
 class FocusDeskApp extends StatelessWidget {
   const FocusDeskApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'FocusDesk',
-      home: Scaffold(
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
+      builder: AppTheme.systemUiBuilder,
+      home: const Scaffold(
         body: SafeArea(child: Center(child: Text('FocusDesk'))),
       ),
     );

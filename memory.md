@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T05
+NEXT_TASK: T06
 
 ## BUILD_CAPABILITY
 full
@@ -26,7 +26,7 @@ full
 - [x] T02 - Create the Flutter project and Android basics
 - [x] T03 - Add dependencies
 - [x] T04 - Folder structure and lint rules
-- [ ] T05 - Theme system (colors, text styles, light/dark)
+- [x] T05 - Theme system (colors, text styles, light/dark)
 - [ ] T06 - Constants, validators, exceptions, utils
 - [ ] T07 - Shared reusable widgets
 - [ ] T08 - Local storage services (Hive + SharedPreferences)
@@ -75,6 +75,8 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- lib/core/theme/{app_colors,app_text_styles,app_theme}.dart: shared semantic palette, typography, Material3 light/dark components and system-bar styling.
+- test/core/theme_test.dart: system theme selection and narrow/large-text control tests.
 - lib/core/: themes, constants, utilities, errors and router.
 - lib/data/: models, local/remote datasources and repositories.
 - lib/features/{auth,tasks,suggested,audio,video,profile,focus,home}/{cubit,view,widgets}: feature state/UI/components.
@@ -87,6 +89,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- Use current Flutter ThemeData APIs (CardThemeData, InputDecorationThemeData, AppBarThemeData). Native QA root switches through normal widget state; avoid calling runApp again from gesture callbacks. System-bar contrast is explicitly coordinated with the scheme.
 - Added SDK integration_test dev dependency for real Android flows. tool/native_qa.dart is a development-only entrypoint for touching real components before production screens exist; production lib/main.dart never imports it. Foundation probes and ordinary app checks are recorded separately.
 - Gradle uses the already-cached 9.3.1 bin distribution; heap 3GB/workers4 fit the host with its emulator. NDK27.1.12297006 passed the scaffold build; T03 added JNI native compilation through path_provider, so app now uses default NDK28.2.13676358.
 - User instructions take precedence over prompt fallbacks: every completed feature must pass automated verification and an actual running-app user flow before committing and advancing. No unverified feature counts as complete.
@@ -99,7 +102,7 @@ full
 - The user authorized SDK installation, emulator provisioning, all implementation and local test/commit steps without further clarification.
 
 ## Known Issues / BLOCKED items
-- No active blockers. T03 debug build and actual native dependency persistence checks passed.
+- No active blockers. Completed task automated/native evidence is in logs.md.
 
 ## Human To-Do (things the human must do after the build)
 
@@ -120,5 +123,6 @@ full
 
 
 - Resident native QA Flutter run session: 17200, target tool/native_qa.dart. Use R to restart after source changes; current app displays production placeholder via QA button.
+
 
 
