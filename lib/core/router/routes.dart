@@ -7,6 +7,7 @@ abstract final class Routes {
   static const taskForm = '/task-form';
   static const music = '/music';
   static const video = '/video';
+  static const videoPlayer = '/video-player';
   static const profile = '/profile';
   static const focus = '/focus';
 }

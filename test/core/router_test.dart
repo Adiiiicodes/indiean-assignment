@@ -9,6 +9,7 @@ import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/router/app_router.dart';
 import 'package:focusdesk/core/router/routes.dart';
 import 'package:focusdesk/data/models/task_model.dart';
+import 'package:focusdesk/data/repositories/video_repository.dart';
 import 'package:focusdesk/features/audio/view/music_screen.dart';
 import 'package:focusdesk/features/audio/cubit/audio_cubit.dart';
 import 'package:focusdesk/features/audio/cubit/audio_state.dart';
@@ -27,6 +28,7 @@ import 'package:focusdesk/features/tasks/view/task_form_screen.dart';
 import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
 import 'package:focusdesk/features/tasks/cubit/task_state.dart';
 import 'package:focusdesk/features/video/view/video_screen.dart';
+import 'package:focusdesk/features/video/view/video_player_screen.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../helpers/app_dependencies.dart';
@@ -174,6 +176,47 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('typed video player route preserves its model and settings', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: SizedBox.shrink()));
+    final video = const VideoRepository().videos.first;
+    final settings = RouteSettings(name: Routes.videoPlayer, arguments: video);
+    final route =
+        AppRouter.onGenerateRoute(settings) as PageRouteBuilder<dynamic>;
+    // Inspect the page without mounting the network player plugin.
+    final page = route.buildPage(
+      tester.element(find.byType(SizedBox)),
+      const AlwaysStoppedAnimation<double>(1),
+      const AlwaysStoppedAnimation<double>(0),
+    );
+    expect(page, isA<VideoPlayerScreen>());
+    expect((page as VideoPlayerScreen).video, same(video));
+    expect(route.settings, same(settings));
+    expect(route.settings.name, Routes.videoPlayer);
+    expect(route.settings.arguments, same(video));
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final argument in <Object?>[null, 'invalid', 42]) {
+    testWidgets('video player argument $argument uses the friendly fallback', (
+      tester,
+    ) async {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(_host(navigatorKey));
+      navigatorKey.currentState!.pushNamed(
+        Routes.videoPlayer,
+        arguments: argument,
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(VideoPlayerScreen), findsNothing);
+      expect(find.text(AppStrings.notFoundTitle), findsWidgets);
+      expect(find.text(AppStrings.returnHome), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('FocusDeskApp starts at splash and wires named navigation', (
     tester,

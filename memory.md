@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T35
+NEXT_TASK: T36
 
 ## BUILD_CAPABILITY
 full
@@ -56,7 +56,7 @@ full
 - [x] T32 - Music player screen UI
 - [x] T33 - Audio states, errors and Android config
 - [x] T34 - Audio integration test with fake service
-- [ ] T35 - Video player screen (Chewie, network)
+- [x] T35 - Video player screen (Chewie, network)
 - [ ] T36 - Video states: buffering, completion/replay, error/retry, time labels
 - [ ] T37 - Fullscreen and orientation handling
 - [ ] T38 - ThemeCubit and settings persistence
@@ -75,6 +75,8 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- data/models/video_model.dart and repositories/video_repository.dart: immutable two-video catalog with verified URLs, gradients and honest nature-demo descriptions. VideoScreen/VideoCard responsive list; typed video-player route, injectable player builder and More videos replacement navigation. FocusVideoPlayer owns initialized network controller/Chewie, themed progress, no autoplay and exact cleanup. Navigation/router tests cover narrow/text1.3/themes/wide/replacement/invalid arguments.
+
 - test/features/audio/music_player_flow_test.dart: full FocusDeskApp/router/Home/auth/lifecycle/real AudioCubit journey with fake decoder only; actual taps/seek/next/previous/restart/completion/Replay/error/Retry/route retention/background/disposal. App player factory stays lazy and single.
 
 - features/audio/widgets/audio_lifecycle_binding.dart: observer owns lazy app-wide provider without creating unused decoder. AudioCubit.setAppActive serializes pending work before pause, cancels background play/repeat intent and delayed decoder recovery, retains completed status. audio_lifecycle_test.dart10 tests; Music19 UI tests include spinner/disabled state, first-fold friendly Retry and explicit Replay; tool/qa/music_states_qa_screen.dart real native local/missing-file/remote Music scenarios.
@@ -128,6 +130,8 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T35 More videos replaces the current player route, keeping one player alive and Back returning to Videos. Controller initializes paused; actual aspect ratio used. Demo copy describes real butterfly/bee footage rather than implying instructional content. Native Chewie controls auto-hide even paused: reveal controls and wait for seek buffering before testing mute.
+
 - Focus screen must reuse context.read<AudioCubit>() from app-owned AudioLifecycleBinding. init is idempotent; route changes retain the selected playlist/position. UI calls Cubit controls; Cubit owns streamed app statuses and service; service owns just_audio decoder/fallback/recovery. Focus routes never dispose this shared decoder; explicit pause/stop for session actions, app provider closes it. Test substitute only AudioPlayerService via AppDependencies.audioPlayerFactory.
 
 - T33 foreground-only audio pauses for every non-resumed lifecycle state, including while a decoder action is pending. Resuming never starts playback. A completed-status latch suppresses late paused/ready announcements until an accepted user action/load/stop/failure. Provider teardown disposes owned decoder/listeners; abrupt process kill relies on OS cleanup because Flutter cannot promise a final lifecycle callback. HTTPS/asset playback needs existing INTERNET permission; no HTTP/header/cache/stream proxy features, so cleartext remains false.
@@ -181,7 +185,7 @@ full
 
 
 
-- Native QA APK PID26766 (launcher after T34 controls/completion/error/Retry); no resident Flutter tty. Debug APK build/install/start workflow verified. Device720x1280/font1.0/light, WiFi/data enabled; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
+- Production APK PID27217 (T35 native video library after player Back); no resident Flutter tty. Debug APK build/install/start workflow verified. Device720x1280/font1.0/light, WiFi/data enabled; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
 - 02:00IST10Oct checkpoint:34/52 committed,18remaining;2verifiedcommits/30min; ETA5–7h/completion07:00–09:00IST. Next checkpoint02:30IST.
 
 

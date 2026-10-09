@@ -148,6 +148,11 @@ abstract final class AppStrings {
   static const moodPiano = 'Piano';
   static const videoOne = 'Deep Work Basics';
   static const videoTwo = 'Beat Procrastination';
+  static const moreVideos = 'More videos';
+  static const videoOneDescription =
+      'A short butterfly nature clip for a calm break between focus sessions.';
+  static const videoTwoDescription =
+      'A short bee nature clip. Take a breath, then return to your next task.';
   static const demoMedia = 'Demo clip';
   static const settings = 'Settings';
   static const appearance = 'Appearance';
