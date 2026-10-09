@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T15
+NEXT_TASK: T16
 
 ## BUILD_CAPABILITY
 full
@@ -36,7 +36,7 @@ full
 - [x] T12 - Splash screen with session redirect
 - [x] T13 - Login screen
 - [x] T14 - Sign-up screen
-- [ ] T15 - Auth flow integration check
+- [x] T15 - Auth flow integration check
 - [ ] T16 - Task model and priority enum
 - [ ] T17 - Task local datasource and repository
 - [ ] T18 - TaskCubit with search, filter and undo
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- test/features/auth/auth_flow_test.dart: real-repository first-launch/signup/logout/demo-login and fresh-session restore; temporary Home auth logout action enables actual production flow before Home shell task.
 - features/auth/view/signup_screen.dart: keyboard-safe validated signup, confirmation, duplicate feedback, loading/back guards and correct Login/Home navigation; test/features/auth/signup_screen_test.dart.
 - features/auth/view/login_screen.dart: validated keyboard-safe Login, demo autofill, loading/failure feedback and guarded stack-clearing navigation; test/features/auth/login_screen_test.dart.
 - features/auth/view/splash_screen.dart: animated themed brand, minimum display timer and session redirect; dedicated timing/disposal/widget checks.
@@ -105,6 +106,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- Auth architecture: bootstrap seeds AuthRepository; one app-level AuthCubit remains across named routes. Splash owns session lookup; current-screen Login/Signup/Home listeners perform stack-clearing auth navigation. Home placeholder has a real Logout action for T15, retained when replacing shell until Profile provides final controls. Tests inject repository delay zero; production600ms stays. Native cold-reopen verifies actual prefs, not mock storage.
 - Mock passwords stored only as SHA-256 through crypto3.0.7; this is assignment demo authentication, not production security. Email normalized; input password kept exact; corrupt accounts fail without overwriting. Default auth delay600ms, injectable zero in tests.
 - Use current Flutter ThemeData APIs (CardThemeData, InputDecorationThemeData, AppBarThemeData). Native QA root switches through normal widget state; avoid calling runApp again from gesture callbacks. System-bar contrast is explicitly coordinated with the scheme.
 - Added SDK integration_test dev dependency for real Android flows. tool/native_qa.dart is a development-only entrypoint for touching real components before production screens exist; production lib/main.dart never imports it. Foundation probes and ordinary app checks are recorded separately.
@@ -139,7 +141,8 @@ full
 
 
 
-- Resident native QA session18822 (tty=true), target tool/native_qa.dart, PID6056; actual signup.t14.20261009@focusdesk.app account created and Home opened via keyboard Done. Hot restart resets QA root; shared real repo retains this session. Device size/font restored720x1280/font1.0.
+- T15 production APK lib/main.dart built/cold-verified. Resident CLI67672 detached; emulator on Login, session logged out. Native QA test data was cleared for first-launch verification; only Journey User and seeded demo now remain in app data.
+
 
 
 
