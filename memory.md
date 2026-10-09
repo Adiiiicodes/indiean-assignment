@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T46
+NEXT_TASK: T47
 
 ## BUILD_CAPABILITY
 full
@@ -67,7 +67,7 @@ full
 - [x] T43 - Stats card on Home and Profile
 - [x] T44 - Responsive and accessibility audit
 - [x] T45 - Motion polish, app icon and native splash
-- [ ] T46 - Full app smoke test
+- [x] T46 - Full app smoke test
 - [ ] T47 - Release APK build and verification
 - [ ] T48 - OPTIONAL stretch: background audio and media notification
 - [ ] T49 - README.md
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- T46: app_smoke_test.dart boots the real app/router with storage, decoder, HTTP and clock fakes; completed session/task/stats, shared audio, settings, logout/cache and exact disposal assertions. Optional instance-local FocusTimerFactory flows through FocusDeskApp/AppRouter; production null remains normal durations. Two Dark Login regressions verify root/layer/platform styles. MainActivity uses compatibility API with first-frame ownership latch; AppTheme enables Android three-button contrast protection.
 - T45: StateMotion excludes outgoing input/semantics/Hero, bounded task panels switch while populated slivers keep identity; MotionEntry adds finite220ms fade/6px entrance inside keyed Dismissible. Compact EmptyView tinted decorative circle. Router/Card/Details/fullscreen honor reduced motion. Pillow tool/generate_app_icon.py creates five branding PNGs and optional --fix-splash-themes postprocess; launcher/splash day/night/density resources configured. MainActivity applies OS bar appearance once during native-to-Flutter handoff; Flutter owns later styling. Five motion regressions and one reduced-route test.
 - T44: responsive_test.dart exercises ten populated screens across five sizes and two text scales (100 cases), with scroll and full demo-label glyph containment assertions. Accessibility tests inspect actual Login/Music/Details semantics and tap guidelines. Login demo action is a wrapping full-width OutlinedButton, preserving autofill and busy guards.
 - StatsCubit/State/Card: serialized generation-safe snapshots, four accessible responsive totals, loading/friendly Retry/zero message. App task/auth bindings plus Tasks/Profile activation, Detailsreturn and accepted Focus revision refresh shared state.7 unit+7 widget+1 wholeapp stats journey; FrozenStats helper keeps unrelated standalone fixtures deterministic.
@@ -141,6 +142,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T46: actual Android dark Login exposed navigation glyph contrast1.99 despite correct Flutter layer/platform messages and Android appearance0. Startup guard/compat alone did not solve it; enabling Android three-button contrast protection gives OS-day dark Login5.95 with protective scrim, and OS-night dark Login readable light glyphs. Native launch day/night remains correct. Root/layer/channel tests use public tester.layers. Natural fake3second completion retains planned25 and verifies Yes/Done persistence; production native25minute journey logs an accepted partial>10seconds then manual Markdone. Keep those evidence claims distinct. Tool refresh interrupted one fullsuite at600; confirmed no surviving process and reran final804/66s successfully.
 - T45 native launch follows OS day/night; Flutter first frame still follows persisted app theme. Regenerate with Python icon script, dart run flutter_launcher_icons, dart run flutter_native_splash:create, then Python --fix-splash-themes. XML bar contrast requires drawSystemBarBackgrounds; embedding resets navigation appearance during handoff, so one posted MainActivity callback restores OS contrast before Flutter style updates (no persistent observer). Actual launcher coldstarts verify both modes. All native QA now runs after build/fulltests finish: debug emulator keyboard input during concurrent fullsuite+resize hit ANR04:45:36/PID10636; quiet fresh runs11497/11615/12140/12286 passed, same last-ANR timestamp. Host contention is an inference; release startup/journey must still be proven T47.
 - T44 actual small-screen large-text audit found horizontal demo-chip text clipping without a RenderFlex exception; replaced it with a wrapping full-width button and added glyph-bound checks. All existing icon-only controls already supply tooltips; three actual-screen semantics/tap-target regressions preserve them. Native remote load initially failed transiently, actual Retry recovered06:12/play-pause02; no network reliability claim is inferred from fake tests.
 - T43 stats are app-scoped; only successful task loads or actual list changes refresh, query/filter do not. Accepted Timer revision refreshes optional Stats provider (standalone Focus tests/QA can omit it); Tasks/Profile tab activation and Detailsreturn also reload. Profile confirmedclear resets read generation and always refreshes afterward, auth logout/identitychange reset; currentAuth guard blocks late task success from prior session. Repository semantics retain T40 local-day/partial/flooring/completion approximation.
@@ -207,7 +209,7 @@ full
 
 
 
-- Production APK PID12286, one pending audit task/zero sessions, Focus Tester/System25. Final189-file format/analyze/801tests88s and last debug17.8s passed. Actual light/dark launcher/native splash contrast, task navigation/state transitions, reduced-motion video fullscreen07s/return07s, quiet320/font1.3/dark keyboard/filteredEmpty/Clear passed. Restored720x1280/font1/OSlight/free0/ignorefalse/allanimation scales1; runtime clean; lastANR remains04:45:36 concurrent stress event.
+- Production debug APK final PID14936, Focus Tester/System25, one pending audit task plus one Done smoke task, one partial session, stats1/0/1/1. Final190-file format/analyze0 and804tests66s PASS; final debug23.5s PASS. Actual whole journey, remote06:12/play01/pause40, cold Dark persistence and final native day/night branding/contrast passed. Restored720x1280/font1/OSlight/System25/free0/ignorefalse/scales1; runtime clean; lastANR unchanged04:45:36. T46 committed then47/52done5remain; nextETA05:30IST.
 - 04:30IST10Oct checkpoint:44/52 committed,8remaining;2verifiedcommits/30min. T44 final795tests/native responsive gates passed, finishing commit. ETA2–3.5h/completion06:30–08:00IST; next checkpoint05:00IST. After T44commit45/52done7remain.
 
 
@@ -229,3 +231,5 @@ full
 
 
 
+
+- 05:00IST10Oct checkpoint:46/52committed,6remaining;2verifiedcommits/30min. T46 complete smoke/router focused tests passed; fullsuite/debug then serialized Android journey in progress. ETA1.5–2.5h/completion06:30–07:30IST; nextcheckpoint05:30IST.

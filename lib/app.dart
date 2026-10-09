@@ -29,10 +29,16 @@ import 'package:focusdesk/data/repositories/focus_repository.dart';
 import 'package:focusdesk/features/tasks/cubit/task_state.dart';
 import 'package:focusdesk/core/errors/app_exception.dart';
 import 'package:focusdesk/features/focus/cubit/stats_cubit.dart';
+import 'package:focusdesk/features/focus/view/focus_screen.dart';
 
 class FocusDeskApp extends StatelessWidget {
-  const FocusDeskApp({required this.dependencies, super.key});
+  const FocusDeskApp({
+    required this.dependencies,
+    this.focusTimerFactory,
+    super.key,
+  });
   final AppDependencies dependencies;
+  final FocusTimerFactory? focusTimerFactory;
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +114,12 @@ class FocusDeskApp extends StatelessWidget {
                   themeMode: state.mode,
                   builder: AppTheme.systemUiBuilder,
                   initialRoute: Routes.splash,
-                  onGenerateRoute: AppRouter.onGenerateRoute,
+                  onGenerateRoute: focusTimerFactory == null
+                      ? AppRouter.onGenerateRoute
+                      : (settings) => AppRouter.onGenerateRoute(
+                          settings,
+                          focusTimerFactory: focusTimerFactory,
+                        ),
                 ),
               ),
             ),

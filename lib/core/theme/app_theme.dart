@@ -14,7 +14,9 @@ abstract final class AppTheme {
           statusBarColor: Colors.transparent,
           systemNavigationBarColor: scheme.surface,
           systemNavigationBarDividerColor: Colors.transparent,
-          systemNavigationBarContrastEnforced: false,
+          // Android supplies three-button contrast protection in edge-to-edge;
+          // gesture navigation remains transparent.
+          systemNavigationBarContrastEnforced: true,
           systemNavigationBarIconBrightness: dark
               ? Brightness.light
               : Brightness.dark,

@@ -17,7 +17,10 @@ import 'package:focusdesk/features/focus/view/focus_screen.dart';
 import 'package:focusdesk/shared/widgets/app_button.dart';
 
 abstract final class AppRouter {
-  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+  static Route<dynamic> onGenerateRoute(
+    RouteSettings settings, {
+    FocusTimerFactory? focusTimerFactory,
+  }) {
     final arguments = settings.arguments;
     final screen = switch (settings.name) {
       Routes.splash => const SplashScreen(),
@@ -37,7 +40,12 @@ abstract final class AppRouter {
       ),
       Routes.profile => const ProfileScreen(),
       Routes.focus when arguments == null || arguments is TaskModel =>
-        ScaffoldMessenger(child: FocusScreen(task: arguments as TaskModel?)),
+        ScaffoldMessenger(
+          child: FocusScreen(
+            task: arguments as TaskModel?,
+            timerFactory: focusTimerFactory,
+          ),
+        ),
       _ => const _UnknownRouteScreen(),
     };
     return PageRouteBuilder<dynamic>(
