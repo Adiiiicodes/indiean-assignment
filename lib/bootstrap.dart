@@ -7,7 +7,9 @@ import 'package:focusdesk/core/theme/app_theme.dart';
 import 'package:focusdesk/data/datasources/local/hive_service.dart';
 import 'package:focusdesk/data/datasources/local/prefs_service.dart';
 import 'package:focusdesk/data/datasources/local/auth_local_datasource.dart';
+import 'package:focusdesk/data/datasources/local/task_local_datasource.dart';
 import 'package:focusdesk/data/repositories/auth_repository.dart';
+import 'package:focusdesk/data/repositories/task_repository.dart';
 import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,10 +19,13 @@ class AppDependencies {
     required this.prefs,
     required this.hive,
     AuthRepository? auth,
-  }) : auth = auth ?? AuthRepository(AuthLocalDatasource(prefs));
+    TaskRepository? tasks,
+  }) : auth = auth ?? AuthRepository(AuthLocalDatasource(prefs)),
+       tasks = tasks ?? TaskRepository(TaskLocalDatasource(hive));
   final PrefsService prefs;
   final HiveService hive;
   final AuthRepository auth;
+  final TaskRepository tasks;
 }
 
 Future<AppDependencies> bootstrap({

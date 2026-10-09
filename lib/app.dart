@@ -4,6 +4,7 @@ import 'package:focusdesk/bootstrap.dart';
 import 'package:focusdesk/data/datasources/local/hive_service.dart';
 import 'package:focusdesk/data/datasources/local/prefs_service.dart';
 import 'package:focusdesk/data/repositories/auth_repository.dart';
+import 'package:focusdesk/data/repositories/task_repository.dart';
 import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
@@ -22,6 +23,7 @@ class FocusDeskApp extends StatelessWidget {
         RepositoryProvider<PrefsService>.value(value: dependencies.prefs),
         RepositoryProvider<HiveService>.value(value: dependencies.hive),
         RepositoryProvider<AuthRepository>.value(value: dependencies.auth),
+        RepositoryProvider<TaskRepository>.value(value: dependencies.tasks),
       ],
       child: BlocProvider<AuthCubit>(
         create: (_) => AuthCubit(dependencies.auth),
