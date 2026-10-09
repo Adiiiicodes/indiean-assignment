@@ -4,6 +4,7 @@ import 'package:focusdesk/bootstrap.dart';
 import 'package:focusdesk/data/datasources/local/hive_service.dart';
 import 'package:focusdesk/data/datasources/local/prefs_service.dart';
 import 'package:focusdesk/data/repositories/auth_repository.dart';
+import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
 import 'package:focusdesk/core/router/app_router.dart';
@@ -22,15 +23,18 @@ class FocusDeskApp extends StatelessWidget {
         RepositoryProvider<HiveService>.value(value: dependencies.hive),
         RepositoryProvider<AuthRepository>.value(value: dependencies.auth),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: AppStrings.appName,
-        theme: AppTheme.light,
-        darkTheme: AppTheme.dark,
-        themeMode: ThemeMode.system,
-        builder: AppTheme.systemUiBuilder,
-        initialRoute: Routes.splash,
-        onGenerateRoute: AppRouter.onGenerateRoute,
+      child: BlocProvider<AuthCubit>(
+        create: (_) => AuthCubit(dependencies.auth),
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: AppStrings.appName,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: ThemeMode.system,
+          builder: AppTheme.systemUiBuilder,
+          initialRoute: Routes.splash,
+          onGenerateRoute: AppRouter.onGenerateRoute,
+        ),
       ),
     );
   }

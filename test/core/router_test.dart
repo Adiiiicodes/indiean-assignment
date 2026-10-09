@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:focusdesk/app.dart';
 import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/router/app_router.dart';
@@ -8,6 +9,8 @@ import 'package:focusdesk/features/audio/view/music_screen.dart';
 import 'package:focusdesk/features/auth/view/login_screen.dart';
 import 'package:focusdesk/features/auth/view/signup_screen.dart';
 import 'package:focusdesk/features/auth/view/splash_screen.dart';
+import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
+import 'package:focusdesk/features/auth/cubit/auth_state.dart';
 import 'package:focusdesk/features/focus/view/focus_screen.dart';
 import 'package:focusdesk/features/home/view/home_screen.dart';
 import 'package:focusdesk/features/profile/view/profile_screen.dart';
@@ -120,9 +123,15 @@ void main() {
 
     final splash = find.byType(SplashScreen);
     expect(splash, findsOneWidget);
+    final auth = tester.element(splash).read<AuthCubit>();
+    expect(auth.state, const AuthInitial());
     Navigator.of(tester.element(splash)).pushNamed(Routes.home);
     await tester.pumpAndSettle();
     expect(find.byType(HomeScreen), findsOneWidget);
+    expect(
+      tester.element(find.byType(HomeScreen)).read<AuthCubit>(),
+      same(auth),
+    );
     expect(tester.takeException(), isNull);
   });
 }

@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T11
+NEXT_TASK: T12
 
 ## BUILD_CAPABILITY
 full
@@ -32,7 +32,7 @@ full
 - [x] T08 - Local storage services (Hive + SharedPreferences)
 - [x] T09 - Routing and screen placeholders
 - [x] T10 - User model, auth datasource and repository (mock)
-- [ ] T11 - AuthCubit and states
+- [x] T11 - AuthCubit and states
 - [ ] T12 - Splash screen with session redirect
 - [ ] T13 - Login screen
 - [ ] T14 - Sign-up screen
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- features/auth/cubit/{auth_state,auth_cubit}.dart: shared app-level authentication transitions, friendly failures and lifecycle/duplicate guards; test/features/auth and native Cubit QA gallery.
 - lib/data/models/user_model.dart: immutable JSON/Equatable user; local/auth_local_datasource.dart: seeded accounts/hash/session; repositories/auth_repository.dart: validated injectable-delay auth operations.
 - test/data/{user_model,auth_repository}_test.dart and tool/qa/auth_repository_qa_screen.dart: model/auth tests and actual native account flow.
 - lib/core/router/{routes,app_router}.dart: ten named routes, argument forwarding, fade/slide transitions and safe fallback; ten feature screen placeholders; test/core/router_test.dart and native routing gallery.
@@ -135,7 +136,8 @@ full
 
 
 
-- Native QA run currently stopped after cold auth persistence verification. Next run target tool/native_qa.dart explicitly (attach defaults to production main unless -t is specified). QA initial route /native-qa allows real splash / through AppRouter.
+- Resident native QA run session23735, target tool/native_qa.dart. QA initial route /native-qa resolves real splash / through AppRouter. Native app is logged out.
+
 
 
 

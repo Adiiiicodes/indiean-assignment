@@ -2,6 +2,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:focusdesk/app.dart';
 import 'package:focusdesk/bootstrap.dart';
 import 'package:focusdesk/core/errors/app_exception.dart';
@@ -9,6 +10,7 @@ import 'package:focusdesk/core/errors/exception_mapper.dart';
 import 'package:focusdesk/core/theme/app_colors.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
 import 'package:focusdesk/core/router/app_router.dart';
+import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -18,6 +20,7 @@ import 'qa/shared_qa_screen.dart';
 import 'qa/storage_qa_screen.dart';
 import 'qa/router_qa_screen.dart';
 import 'qa/auth_repository_qa_screen.dart';
+import 'qa/auth_cubit_qa_screen.dart';
 
 Future<void> main() async {
   try {
@@ -48,24 +51,28 @@ class _NativeQaAppState extends State<NativeQaApp> {
     if (_showStartupFailure) {
       return const BootstrapErrorApp(failure: StorageException());
     }
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
-      builder: AppTheme.systemUiBuilder,
-      onGenerateRoute: AppRouter.onGenerateRoute,
-      initialRoute: '/native-qa',
-      onGenerateInitialRoutes: (_) => [
-        MaterialPageRoute<void>(
-          settings: const RouteSettings(name: '/native-qa'),
-          builder: (_) => NativeQaScreen(
-            dependencies: widget.dependencies,
-            onStartupFailure: () => setState(() => _showStartupFailure = true),
-            onOpenProduction: () => setState(() => _showProductionApp = true),
+    return BlocProvider<AuthCubit>(
+      create: (_) => AuthCubit(widget.dependencies.auth),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        themeMode: ThemeMode.system,
+        builder: AppTheme.systemUiBuilder,
+        onGenerateRoute: AppRouter.onGenerateRoute,
+        initialRoute: '/native-qa',
+        onGenerateInitialRoutes: (_) => [
+          MaterialPageRoute<void>(
+            settings: const RouteSettings(name: '/native-qa'),
+            builder: (_) => NativeQaScreen(
+              dependencies: widget.dependencies,
+              onStartupFailure: () =>
+                  setState(() => _showStartupFailure = true),
+              onOpenProduction: () => setState(() => _showProductionApp = true),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -154,6 +161,15 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AuthCubitQaScreen(),
+                  ),
+                ),
+                child: const Text('Auth cubit'),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
