@@ -138,6 +138,10 @@ abstract final class AppStrings {
   static const trackOne = 'Lo-fi Drift';
   static const trackTwo = 'Ambient Bloom';
   static const trackThree = 'Piano Focus';
+  static const trackArtist = 'SoundHelix demo';
+  static const moodLofi = 'Lo-fi';
+  static const moodAmbient = 'Ambient';
+  static const moodPiano = 'Piano';
   static const videoOne = 'Deep Work Basics';
   static const videoTwo = 'Beat Procrastination';
   static const demoMedia = 'Demo clip';

@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T30
+NEXT_TASK: T31
 
 ## BUILD_CAPABILITY
 full
@@ -51,7 +51,7 @@ full
 - [x] T27 - Suggested tab UI and tab bar in Tasks
 - [x] T28 - API flow verification
 - [x] T29 - Verify media URLs and add local fallbacks
-- [ ] T30 - Track model and AudioPlayerService (just_audio wrapper)
+- [x] T30 - Track model and AudioPlayerService (just_audio wrapper)
 - [ ] T31 - AudioCubit
 - [ ] T32 - Music player screen UI
 - [ ] T33 - Audio states, errors and Android config
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- data/models/track_model.dart and repositories/audio_repository.dart: immutable plain-data3-track catalog, verified URLs/artwork/moods; datasources/media/audio_player_service.dart: app-owned statuses/interface, JustAudio playlist/controls/indexed asset recovery/generation guards. audio_repository_test.dart3 + audio_player_service_test.dart19; tool/qa/audio_service_qa_screen.dart actual local/remote/offline controls.
 - T29 media: explicit bundled MP3/MP4 fallbacks (~2.74MB), MediaUrls asset/source constants; test/core/media_assets_test.dart loads actual bundles/manifest and checks signatures/size; tool/qa/media_assets_qa_screen.dart development-only native offline playback/pause/disposal probe.
 - test/features/suggested/suggested_import_flow_test.dart: two real router/Home/API-Dio-adapter/datasource/repository/Cubit + JSON-memory task persistence UI journeys. Stable import/Added/MyTasks/page20/clamped final3/end and offline/malformed Retry recovery/privacy assertions. Actual Android live/offline/edit/delete evidence in logs.
 - features/tasks/view/tasks_workspace.dart: retained My Tasks/Suggested TabBarView, lazy API first visit and outer Home tab active propagation. features/suggested/view/suggested_view.dart: keepalive list, infinite paging/refresh/loading/empty/error/retry, full-title responsive cards and verified Add/Added/snackbar. Tests14 view+3 workspace; MyTasks hidden error regression; shell active assertions.
@@ -120,6 +121,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- just_audio0.10.6 setAudioSources replaces deprecated concatenation. Player.play Future lasts untilpause/end: wrapper returns controls immediately and handles asyncerrors. Processing loading/buffering/completed override playingflag, hasPlayed distinguishes firstready/paused. Listen separate errorStream for latertrack failure. Android remote seek Future may remainpending after asset decoderreplacement: race operation against recovery completion; native offlineNext and2exact regressions verify controls release. Eachremote index can fallbackonce; generationguards stale loads/disposal.
 - T29 all5 declared media URLs return200. Long SoundHelix files exceed6MB; small Samplelib MP3 fallback (19.17s actual) and butterflyMP4(7.54s) total2737349bytes. Explicit asset entries avoid bundling source debris. FFmpeg8.1.2/ffprobe installed in WinGet Gyan.FFmpeg package verified codecs. Native position updates can prevent UIAutomator idling: use observed control bounds/screenshot, pause, then fresh hierarchy.
 - Suggested imports use deterministic suggested-<APIid> identity, imported source/Medium and API completed status, one captured timestamp. Dio is constructor-injected/configured in AppDependencies; adapters retained. Logs are debug-only method/path/status/type, no body/query/headers; logger failures cannot fail requests.
 - Live DummyJSON verification: total254; requested20/skip240 returns14items/limit14; skip260 returns0items/limit0. Accept clamped returned limits up to requested limit, require matching skip and valid exact count, reject empty-before-total/no-progress pages. Never assume returned limit equals requested page size.
@@ -163,8 +165,9 @@ full
 
 
 
-- Resident native tty session51228, tool/native_qa.dart, PID21229; launcher after T29 offline asset playback/pause/disposal. WiFi/data restored; device720x1280/font1.0/light. Nine agent-only tasks retained. Use --no-dds; lowercase r reload reliable; uppercase R intermittent connection loss. Cold q/run resets. Native tabs include newline Tab n of m; skip ensureVisible for already-hit-testable controls inside TabBarView.
+- Resident native tty session51228, tool/native_qa.dart, PID21229; launcher after T30 real service local/remote/offline controls/disposal. WiFi/data restored; device720x1280/font1.0/light. Nine agent-only tasks retained. Use --no-dds; lowercase r reload reliable; uppercase R intermittent connection loss. Cold q/run resets. Native tabs include newline Tab n of m; skip ensureVisible for already-hit-testable controls inside TabBarView.
 - 01:00IST10Oct checkpoint:29/52 committed,23remaining;3verifiedcommits/30min; ETA6–8h/completion07:00–09:00IST. Next checkpoint01:30IST.
+
 
 
 

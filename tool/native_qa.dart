@@ -33,6 +33,7 @@ import 'qa/task_cubit_qa_screen.dart';
 import 'qa/suggested_api_qa_screen.dart';
 import 'qa/suggested_cubit_qa_screen.dart';
 import 'qa/media_assets_qa_screen.dart';
+import 'qa/audio_service_qa_screen.dart';
 
 Future<void> main() async {
   try {
@@ -230,6 +231,15 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AudioServiceQaScreen(),
+                  ),
+                ),
+                child: const Text('Audio service'),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
