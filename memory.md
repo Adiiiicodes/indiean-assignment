@@ -1,16 +1,27 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T01
+NEXT_TASK: T02
 
 ## BUILD_CAPABILITY
-unknown
+full
 
 ## Environment
+- Host: Windows, PowerShell; timezone Asia/Calcutta.
+- Git: 2.51.0.windows.2.
+- Android SDK: C:\Users\DELL\AppData\Local\Android\Sdk; platforms 35, 36, 36.1 and corresponding build tools present.
+- Java for Flutter/Gradle: Android Studio bundled JBR 21.0.9 at C:\Program Files\Android\Android Studio\jbr; default global Java is Corretto 25.0.3.
+- ADB: 37.0.0; emulator 36.4.10.0; WHPX acceleration installed and usable.
+- Native UI automation: Computer Use @oai/sky initializes and lists windows successfully.
+- Flutter SDK: C:\Users\DELL\flutter; Flutter 3.47.7 stable, Dart 3.13.5, DevTools 2.60.0; stable commit abaf9c523780a608bd46686fd5e53740a07077f8 (published 2026-10-08). Android SDK and JBR configured; analytics disabled.
+- Running device: emulator-5554, FocusDesk_API35, Android 15/API35/default x86_64 revision2; 720x1280 at320dpi (360x640dp), 2GB RAM/2cores, host GPU. Boot completed and launcher/shell/back/home verified.
+- Flutter doctor Android toolchain passes (SDK36.1.0, Java21, all licenses accepted). PATH warnings are avoided with the session PATH line below; Visual Studio warning applies to Windows desktop only. First APK/Gradle resolution will be proven by T02.
+- Bundled Python for later artifact scripts: C:\Users\DELL\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe.
+- Original prompt SHA256: STARTER_PROMPT.txt A885E2421E4E672BF2C4DE994EE74419CB1CFD623B829FE4E87F3A864F58C809; MEGA_PLAN.md 51F49C4F859523C34445C8761C1B7871BB0E832E7B77AD3C0C2D87AA1F14A2C3; prompts.txt 587ED5202BEB8DFE1727557D85E78748B34F3F16E77B7926B05932005B407083.
 
 ## Task Checklist
 - [x] T00 - Create control files (context.md, memory.md, logs.md)
-- [ ] T01 - Check and prepare the Flutter/Android toolchain
+- [x] T01 - Check and prepare the Flutter/Android toolchain
 - [ ] T02 - Create the Flutter project and Android basics
 - [ ] T03 - Add dependencies
 - [ ] T04 - Folder structure and lint rules
@@ -75,10 +86,18 @@ unknown
 - The user authorized SDK installation, emulator provisioning, all implementation and local test/commit steps without further clarification.
 
 ## Known Issues / BLOCKED items
-- Flutter SDK and Android emulator system image are missing; provision during T01 before feature work.
+- No active blockers. First debug APK and actual app launch are the T02 completion gate.
 
 ## Human To-Do (things the human must do after the build)
 
 ## Useful Commands
 - Session started: 2026-10-09 19:30:49 IST
 - Initial ETA: 10-16 hours including toolchain setup and running-app checks; revise from actual timings.
+
+
+- Flutter commands use --no-version-check to avoid an unnecessary first-run fetch of historical SDK Git tags.
+- Session PATH: $env:PATH = 'C:\Users\DELL\flutter\bin;C:\Users\DELL\AppData\Local\Android\Sdk\platform-tools;' + $env:PATH
+- Android app cache command: flutter --no-version-check precache --android_gen_snapshot --android_maven --universal
+- SDK source confirms broad --android also fetches internal Flutter build binaries. Supported narrower flags skip about525MB of remaining internal-only archives; no cache stamps modified. Actual Maven/Gradle build remains verified in T02.
+- ADB executable: C:\Users\DELL\AppData\Local\Android\Sdk\platform-tools\adb.exe
+- Bundled artifact Python/Pillow verified: Python3.12.14.
