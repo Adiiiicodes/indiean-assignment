@@ -15,6 +15,8 @@ import 'package:focusdesk/features/profile/widgets/profile_name_dialog.dart';
 import 'package:focusdesk/shared/widgets/app_button.dart';
 import 'package:focusdesk/shared/widgets/app_snackbar.dart';
 import 'package:focusdesk/shared/widgets/section_header.dart';
+import 'package:focusdesk/features/focus/cubit/stats_cubit.dart';
+import 'package:focusdesk/features/focus/widgets/stats_card.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, this.embedded = false, this.active = true});
@@ -36,8 +38,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       widget.active && (ModalRoute.of(context)?.isCurrent ?? true);
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.active) unawaited(context.read<StatsCubit>().refresh());
+  }
+
+  @override
   void didUpdateWidget(covariant ProfileScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!oldWidget.active && widget.active) {
+      unawaited(context.read<StatsCubit>().refresh());
+    }
     if (oldWidget.active && !widget.active) {
       _messenger.currentState?.hideCurrentSnackBar();
     }
@@ -101,6 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _logoutOperation = logout;
     });
     if (confirmed != true) return;
+    if (!logout) context.read<StatsCubit>().reset();
     try {
       final success = logout
           ? await cubit.logout()
@@ -115,6 +127,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         AppSnackbar.showSuccess(feedbackContext, AppStrings.dataCleared);
       }
     } finally {
+      if (mounted && !logout) {
+        unawaited(context.read<StatsCubit>().refresh());
+      }
       if (mounted) setState(() => _working = false);
     }
   }
@@ -325,15 +340,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            _section(
-                              title: AppStrings.stats,
-                              child: Text(
-                                AppStrings.statsPlaceholder,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
+                            const StatsCard(),
                             const SizedBox(height: 16),
                             _section(
                               title: AppStrings.about,

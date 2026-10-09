@@ -22,6 +22,8 @@ import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/frozen_stats_cubit.dart';
+
 final _task = TaskModel(
   id: 'details-task',
   title: 'Review the release',
@@ -175,6 +177,8 @@ Future<_Navigation> _pumpDetails(
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(cubit.close);
+  final stats = FrozenStatsCubit();
+  addTearDown(stats.close);
   final auth = _AuthCubit();
   when(() => auth.state).thenReturn(
     Authenticated(
@@ -193,6 +197,7 @@ Future<_Navigation> _pumpDetails(
       providers: [
         BlocProvider<TaskCubit>.value(value: cubit),
         BlocProvider<AuthCubit>.value(value: auth),
+        BlocProvider<StatsCubit>.value(value: stats),
       ],
       child: MaterialApp(
         theme: brightness == Brightness.light ? AppTheme.light : AppTheme.dark,

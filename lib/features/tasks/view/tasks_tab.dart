@@ -17,6 +17,8 @@ import 'package:focusdesk/shared/widgets/app_text_field.dart';
 import 'package:focusdesk/shared/widgets/empty_view.dart';
 import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
+import 'package:focusdesk/features/focus/cubit/stats_cubit.dart';
+import 'package:focusdesk/features/focus/widgets/stats_card.dart';
 
 class TasksTab extends StatefulWidget {
   const TasksTab({super.key, this.now, this.active = true});
@@ -40,6 +42,15 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _observedQuery = context.read<TaskCubit>().state.query;
     _searchController = TextEditingController(text: _observedQuery);
+    if (widget.active) unawaited(context.read<StatsCubit>().refresh());
+  }
+
+  @override
+  void didUpdateWidget(covariant TasksTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.active && widget.active) {
+      unawaited(context.read<StatsCubit>().refresh());
+    }
   }
 
   @override
@@ -130,6 +141,7 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
       }
     } finally {
       _openingRoute = false;
+      if (mounted) unawaited(context.read<StatsCubit>().refresh());
     }
   }
 
@@ -230,6 +242,10 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
                     SliverToBoxAdapter(child: _header(context)),
+                    const SliverPadding(
+                      padding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+                      sliver: SliverToBoxAdapter(child: StatsCard()),
+                    ),
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                       sliver: SliverToBoxAdapter(

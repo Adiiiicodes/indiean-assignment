@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:focusdesk/bootstrap.dart';
 import 'package:focusdesk/data/datasources/local/hive_service.dart';
@@ -27,6 +28,7 @@ import 'package:focusdesk/data/repositories/profile_repository.dart';
 import 'package:focusdesk/data/repositories/focus_repository.dart';
 import 'package:focusdesk/features/tasks/cubit/task_state.dart';
 import 'package:focusdesk/core/errors/app_exception.dart';
+import 'package:focusdesk/features/focus/cubit/stats_cubit.dart';
 
 class FocusDeskApp extends StatelessWidget {
   const FocusDeskApp({required this.dependencies, super.key});
@@ -67,6 +69,9 @@ class FocusDeskApp extends StatelessWidget {
           ),
           BlocProvider<AuthCubit>(create: (_) => AuthCubit(dependencies.auth)),
           BlocProvider<TaskCubit>(create: (_) => TaskCubit(dependencies.tasks)),
+          BlocProvider<StatsCubit>(
+            create: (_) => StatsCubit(dependencies.focus),
+          ),
           BlocProvider<SuggestedCubit>(
             create: (context) => SuggestedCubit(
               dependencies.suggested,
@@ -134,20 +139,37 @@ class _TaskSessionBindingState extends State<_TaskSessionBinding> {
   void _syncSession(AuthState state) {
     if (state is Authenticated && state.user.id != _userId) {
       _userId = state.user.id;
+      context.read<StatsCubit>().reset();
       final tasks = context.read<TaskCubit>();
       tasks.reset();
       context.read<SuggestedCubit>().reset();
       unawaited(tasks.load());
     } else if (state is Unauthenticated) {
       _userId = null;
+      context.read<StatsCubit>().reset();
       context.read<TaskCubit>().reset();
       context.read<SuggestedCubit>().reset();
     }
   }
 
   @override
-  Widget build(BuildContext context) => BlocListener<AuthCubit, AuthState>(
-    listener: (_, state) => _syncSession(state),
+  Widget build(BuildContext context) => MultiBlocListener(
+    listeners: [
+      BlocListener<AuthCubit, AuthState>(
+        listener: (_, state) => _syncSession(state),
+      ),
+      BlocListener<TaskCubit, TaskState>(
+        listenWhen: (before, after) =>
+            after.status == TaskStatus.success &&
+            (before.status != TaskStatus.success ||
+                !listEquals(before.tasks, after.tasks)),
+        listener: (context, _) {
+          if (context.read<AuthCubit>().state is Authenticated) {
+            unawaited(context.read<StatsCubit>().refresh());
+          }
+        },
+      ),
+    ],
     child: widget.child,
   );
 }

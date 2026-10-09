@@ -11,6 +11,7 @@ import 'package:focusdesk/features/audio/cubit/audio_cubit.dart';
 import 'package:focusdesk/features/audio/cubit/audio_state.dart';
 import 'package:focusdesk/features/focus/cubit/timer_cubit.dart';
 import 'package:focusdesk/features/focus/cubit/timer_state.dart';
+import 'package:focusdesk/features/focus/cubit/stats_cubit.dart';
 import 'package:focusdesk/features/focus/widgets/focus_completion_dialog.dart';
 import 'package:focusdesk/features/focus/widgets/focus_countdown.dart';
 import 'package:focusdesk/features/focus/widgets/focus_music_player.dart';
@@ -45,6 +46,7 @@ class _FocusScreenState extends State<FocusScreen> {
   int _musicToken = 0;
   int _musicPending = 0;
   int _handledRevision = 0;
+  int _statsRevision = 0;
   bool _musicWanted = false;
   bool _musicEnabled = true;
   bool _dialogOpen = false;
@@ -151,6 +153,11 @@ class _FocusScreenState extends State<FocusScreen> {
   }
 
   void _onTimer(TimerState state) {
+    if (state.lastSession != null && state.revision > _statsRevision) {
+      _statsRevision = state.revision;
+      final stats = context.read<StatsCubit?>();
+      if (stats != null) unawaited(stats.refresh());
+    }
     if (state.status != TimerStatus.running && _musicWanted) {
       unawaited(_requestMusic(false));
     }

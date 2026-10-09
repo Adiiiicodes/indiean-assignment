@@ -21,6 +21,8 @@ import 'package:focusdesk/features/tasks/view/tasks_workspace.dart';
 import 'package:focusdesk/shared/widgets/app_text_field.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/frozen_stats_cubit.dart';
+
 class _AuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 class _TaskCubit extends MockCubit<TaskState> implements TaskCubit {}
@@ -45,6 +47,21 @@ ScrollableState _scrollable(WidgetTester tester, Type view) =>
           .first,
     );
 
+Future<void> _showSearch(WidgetTester tester) async {
+  await tester.scrollUntilVisible(
+    _search,
+    150,
+    scrollable: find
+        .descendant(
+          of: find.byType(TasksTab),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+  await tester.ensureVisible(_search);
+  await tester.pumpAndSettle();
+}
+
 Future<_SuggestedCubit> _pumpWorkspace(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
@@ -53,6 +70,8 @@ Future<_SuggestedCubit> _pumpWorkspace(
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
+  final stats = FrozenStatsCubit();
+  addTearDown(stats.close);
   final auth = _AuthCubit();
   when(() => auth.state).thenReturn(const Unauthenticated());
   final tasks = _TaskCubit();
@@ -103,6 +122,7 @@ Future<_SuggestedCubit> _pumpWorkspace(
     MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>.value(value: auth),
+        BlocProvider<StatsCubit>.value(value: stats),
         BlocProvider<TaskCubit>.value(value: tasks),
         BlocProvider<SuggestedCubit>.value(value: suggested),
       ],
@@ -142,6 +162,7 @@ void main() {
       '${brightness.name} narrow tabs retain query and both scroll positions',
       (tester) async {
         final suggested = await _pumpWorkspace(tester, brightness: brightness);
+        await _showSearch(tester);
         final controller = tester.widget<TextField>(_search).controller!;
         await tester.enterText(_search, 'Keep');
         await tester.pump(AppConstants.searchDebounce);
@@ -170,6 +191,7 @@ void main() {
         );
         myTasksScroll.position.jumpTo(0);
         await tester.pumpAndSettle();
+        await _showSearch(tester);
         expect(tester.widget<TextField>(_search).controller, same(controller));
         expect(controller.text, 'Keep');
         expect(_search.hitTestable(), findsOneWidget);

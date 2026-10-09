@@ -31,6 +31,8 @@ import 'package:focusdesk/shared/widgets/app_button.dart';
 import 'package:focusdesk/shared/widgets/app_text_field.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/frozen_stats_cubit.dart';
+
 class _AuthenticatedCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 class _FrozenProfile extends MockCubit<ProfileState> implements ProfileCubit {}
@@ -136,6 +138,8 @@ void main() {
       var now = DateTime.now().add(const Duration(hours: 1));
       final repository = TaskRepository(_MemoryTasks(), now: () => now);
       final cubit = TaskCubit(repository);
+      final stats = FrozenStatsCubit();
+      addTearDown(stats.close);
       final auth = _AuthenticatedCubit();
       final suggestions = _EmptySuggestions();
       when(() => suggestions.state)
@@ -169,6 +173,7 @@ void main() {
         MultiBlocProvider(
           providers: [
             BlocProvider<AuthCubit>.value(value: auth),
+            BlocProvider<StatsCubit>.value(value: stats),
             BlocProvider<TaskCubit>.value(value: cubit),
             BlocProvider<SuggestedCubit>.value(value: suggestions),
             BlocProvider<ProfileCubit>.value(value: profile),

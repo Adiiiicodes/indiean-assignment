@@ -22,6 +22,8 @@ import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/frozen_stats_cubit.dart';
+
 class _AuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 class _TaskCubit extends Cubit<TaskState> implements TaskCubit {
@@ -205,6 +207,18 @@ Finder _tile(String id) => find.byKey(ValueKey(id));
 
 Future<void> _tapVisible(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
+  if (finder.evaluate().isEmpty) {
+    await tester.scrollUntilVisible(
+      finder,
+      150,
+      scrollable: find
+          .descendant(
+            of: find.byType(TasksTab),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+  }
   await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
   await tester.tap(finder);
@@ -229,6 +243,8 @@ Future<_TaskCubit> _pumpTab(
   final tasks =
       cubit ??
       _TaskCubit(state ?? TaskState(status: TaskStatus.success, tasks: _tasks));
+  final stats = FrozenStatsCubit();
+  addTearDown(stats.close);
   final auth = _AuthCubit();
   when(() => auth.state).thenReturn(
     authState ??
@@ -247,6 +263,7 @@ Future<_TaskCubit> _pumpTab(
     MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>.value(value: auth),
+        BlocProvider<StatsCubit>.value(value: stats),
         BlocProvider<TaskCubit>.value(value: tasks),
       ],
       child: MaterialApp(

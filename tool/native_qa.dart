@@ -49,6 +49,7 @@ import 'package:focusdesk/features/profile/cubit/theme_state.dart';
 import 'package:focusdesk/features/profile/cubit/settings_cubit.dart';
 import 'package:focusdesk/features/profile/cubit/profile_cubit.dart';
 import 'package:focusdesk/features/audio/widgets/audio_lifecycle_binding.dart';
+import 'package:focusdesk/features/focus/cubit/stats_cubit.dart';
 
 Future<void> main() async {
   try {
@@ -126,6 +127,9 @@ class _NativeQaAppState extends State<NativeQaApp> {
           ),
           BlocProvider<TaskCubit>(
             create: (_) => TaskCubit(widget.dependencies.tasks)..load(),
+          ),
+          BlocProvider<StatsCubit>(
+            create: (_) => StatsCubit(widget.dependencies.focus),
           ),
           BlocProvider<ProfileCubit>(
             create: (context) => ProfileCubit(

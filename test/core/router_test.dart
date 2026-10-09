@@ -40,6 +40,8 @@ import 'package:mocktail/mocktail.dart';
 
 import '../helpers/app_dependencies.dart';
 
+import '../helpers/frozen_stats_cubit.dart';
+
 class _FrozenAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 class _FrozenTaskCubit extends MockCubit<TaskState> implements TaskCubit {}
@@ -57,6 +59,8 @@ class _FrozenSettingsCubit extends MockCubit<SettingsState>
 class _FocusRepository extends Mock implements FocusRepository {}
 
 Widget _host(GlobalKey<NavigatorState> navigatorKey, {TaskModel? task}) {
+  final stats = FrozenStatsCubit();
+  addTearDown(stats.close);
   final auth = _FrozenAuthCubit();
   when(() => auth.state).thenReturn(const AuthInitial());
   when(() => auth.checkSession()).thenAnswer((_) => Completer<void>().future);
@@ -92,6 +96,7 @@ Widget _host(GlobalKey<NavigatorState> navigatorKey, {TaskModel? task}) {
     child: MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>.value(value: auth),
+        BlocProvider<StatsCubit>.value(value: stats),
         BlocProvider<TaskCubit>.value(value: tasks),
         BlocProvider<AudioCubit>.value(value: audio),
         BlocProvider<ProfileCubit>.value(value: profile),

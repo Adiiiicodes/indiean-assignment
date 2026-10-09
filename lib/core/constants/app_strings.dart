@@ -217,6 +217,8 @@ abstract final class AppStrings {
   static const tasksDoneToday = 'Tasks done today';
   static const focusStreak = 'Day streak';
   static const stats = 'Your progress';
+  static const sessionsToday = 'Sessions today';
+  static const statsZero = 'Your next focus session starts your progress.';
   static const notFoundTitle = 'Page not found';
   static const returnHome = 'Return home';
 

@@ -39,6 +39,8 @@ import 'package:focusdesk/shared/widgets/app_button.dart';
 import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/frozen_stats_cubit.dart';
+
 class _AuthenticatedCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 class _FrozenProfile extends MockCubit<ProfileState> implements ProfileCubit {}
@@ -143,6 +145,8 @@ Future<(TaskCubit, SuggestedCubit, _MemoryTasks)> _pumpHome(
     SuggestedRepository(SuggestedRemoteDatasource(dio)),
     tasks,
   );
+  final stats = FrozenStatsCubit();
+  addTearDown(stats.close);
   final auth = _AuthenticatedCubit();
   when(() => auth.state).thenReturn(
     Authenticated(
@@ -175,6 +179,7 @@ Future<(TaskCubit, SuggestedCubit, _MemoryTasks)> _pumpHome(
     MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>.value(value: auth),
+        BlocProvider<StatsCubit>.value(value: stats),
         BlocProvider<TaskCubit>.value(value: tasks),
         BlocProvider<SuggestedCubit>.value(value: suggestions),
         BlocProvider<ProfileCubit>.value(value: profile),

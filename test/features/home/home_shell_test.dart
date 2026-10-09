@@ -33,6 +33,8 @@ import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/fake_audio_player_service.dart';
 
+import '../../helpers/frozen_stats_cubit.dart';
+
 class _FrozenAuthCubit extends MockCubit<AuthState> implements AuthCubit {}
 
 class _FrozenTaskCubit extends MockCubit<TaskState> implements TaskCubit {}
@@ -125,6 +127,8 @@ Future<void> _pumpShell(
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
+  final stats = FrozenStatsCubit();
+  addTearDown(stats.close);
   final auth = _FrozenAuthCubit();
   when(() => auth.state).thenReturn(
     Authenticated(
@@ -163,6 +167,7 @@ Future<void> _pumpShell(
     MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>.value(value: auth),
+        BlocProvider<StatsCubit>.value(value: stats),
         BlocProvider<TaskCubit>.value(value: tasks),
         BlocProvider<AudioCubit>(create: (_) => audioFactory?.call() ?? audio),
         BlocProvider<ProfileCubit>.value(value: profile),
