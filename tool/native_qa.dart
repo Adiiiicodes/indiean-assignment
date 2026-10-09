@@ -32,6 +32,7 @@ import 'qa/task_repository_qa_screen.dart';
 import 'qa/task_cubit_qa_screen.dart';
 import 'qa/suggested_api_qa_screen.dart';
 import 'qa/suggested_cubit_qa_screen.dart';
+import 'qa/media_assets_qa_screen.dart';
 
 Future<void> main() async {
   try {
@@ -238,6 +239,15 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
                   ),
                 ),
                 child: const Text('Suggested cubit'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const MediaAssetsQaScreen(),
+                  ),
+                ),
+                child: const Text('Media assets'),
               ),
               const SizedBox(height: 12),
               OutlinedButton(

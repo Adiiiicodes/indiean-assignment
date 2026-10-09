@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T29
+NEXT_TASK: T30
 
 ## BUILD_CAPABILITY
 full
@@ -50,7 +50,7 @@ full
 - [x] T26 - Suggested repository and cubit (pagination + refresh)
 - [x] T27 - Suggested tab UI and tab bar in Tasks
 - [x] T28 - API flow verification
-- [ ] T29 - Verify media URLs and add local fallbacks
+- [x] T29 - Verify media URLs and add local fallbacks
 - [ ] T30 - Track model and AudioPlayerService (just_audio wrapper)
 - [ ] T31 - AudioCubit
 - [ ] T32 - Music player screen UI
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- T29 media: explicit bundled MP3/MP4 fallbacks (~2.74MB), MediaUrls asset/source constants; test/core/media_assets_test.dart loads actual bundles/manifest and checks signatures/size; tool/qa/media_assets_qa_screen.dart development-only native offline playback/pause/disposal probe.
 - test/features/suggested/suggested_import_flow_test.dart: two real router/Home/API-Dio-adapter/datasource/repository/Cubit + JSON-memory task persistence UI journeys. Stable import/Added/MyTasks/page20/clamped final3/end and offline/malformed Retry recovery/privacy assertions. Actual Android live/offline/edit/delete evidence in logs.
 - features/tasks/view/tasks_workspace.dart: retained My Tasks/Suggested TabBarView, lazy API first visit and outer Home tab active propagation. features/suggested/view/suggested_view.dart: keepalive list, infinite paging/refresh/loading/empty/error/retry, full-title responsive cards and verified Add/Added/snackbar. Tests14 view+3 workspace; MyTasks hidden error regression; shell active assertions.
 - data/repositories/suggested_repository.dart and features/suggested/cubit/: immutable pagination/import state, live offsets and retained error retry, serialized stable-ID imports through shared TaskCubit, Added tracking after delete/Undo/clear; app-scoped DI and auth cache reset. Tests28 plus1 app-session test; native suggested_cubit_qa_screen.dart.
@@ -119,6 +120,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T29 all5 declared media URLs return200. Long SoundHelix files exceed6MB; small Samplelib MP3 fallback (19.17s actual) and butterflyMP4(7.54s) total2737349bytes. Explicit asset entries avoid bundling source debris. FFmpeg8.1.2/ffprobe installed in WinGet Gyan.FFmpeg package verified codecs. Native position updates can prevent UIAutomator idling: use observed control bounds/screenshot, pause, then fresh hierarchy.
 - Suggested imports use deterministic suggested-<APIid> identity, imported source/Medium and API completed status, one captured timestamp. Dio is constructor-injected/configured in AppDependencies; adapters retained. Logs are debug-only method/path/status/type, no body/query/headers; logger failures cannot fail requests.
 - Live DummyJSON verification: total254; requested20/skip240 returns14items/limit14; skip260 returns0items/limit0. Accept clamped returned limits up to requested limit, require matching skip and valid exact count, reject empty-before-total/no-progress pages. Never assume returned limit equals requested page size.
 - Task form returns its verified TaskModel; receiving TasksTab or Details shows success. Task routes have local ScaffoldMessenger scopes so feedback leaves with the screen and list feedback clears the FAB. Each notification content gets UniqueKey because Flutter3.47 SnackBar Hero tags interpolate content.toString(); equal unkeyed text can collide. Add FAB has heroTag:null because its keyboard exit/entry animation can retain two instances; title Heroes remain. Undo explicitly persist:false honors six seconds under current SDK defaults and defers a requested restore until another mutation finishes.
@@ -161,8 +163,9 @@ full
 
 
 
-- Resident native tty session32372, lib/main.dart, PID20552; production Suggested open at classic-movie card after native offline Retry/import/edit/delete. WiFi/data re-enabled, default network104. Demo session and nine agent-only tasks (suggested-1 and suggested-2 retained; temporary suggested-3 edited then deleted). Actual device/font/light restored. Use --no-dds; lowercase r reload succeeds, uppercase R intermittently loses connection leaving prior app state; cold build/run resets. Task state loads once per identity; logout/replacement invalidates old reads. External ADB helper excludes EditText. Native tab labels include newline Tab n of m. Test ensureVisible should skip already-hit-testable controls inside TabBarView; otherwise it may move to an adjacent page.
-- 00:30IST10Oct checkpoint:26/52 committed,26remaining;3verifiedcommits/30min,pagination verifying; ETA6–9h/completion06:30–09:30IST. Next checkpoint01:00IST.
+- Resident native tty session51228, tool/native_qa.dart, PID21229; launcher after T29 offline asset playback/pause/disposal. WiFi/data restored; device720x1280/font1.0/light. Nine agent-only tasks retained. Use --no-dds; lowercase r reload reliable; uppercase R intermittent connection loss. Cold q/run resets. Native tabs include newline Tab n of m; skip ensureVisible for already-hit-testable controls inside TabBarView.
+- 01:00IST10Oct checkpoint:29/52 committed,23remaining;3verifiedcommits/30min; ETA6–8h/completion07:00–09:00IST. Next checkpoint01:30IST.
+
 
 
 

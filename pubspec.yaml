@@ -40,7 +40,7 @@ flutter:
 
   uses-material-design: true
   assets:
-    - assets/audio/
-    - assets/video/
+    - assets/audio/fallback.mp3
+    - assets/video/fallback.mp4
     - assets/images/
 
