@@ -11,6 +11,8 @@ import 'package:focusdesk/data/datasources/local/auth_local_datasource.dart';
 import 'package:focusdesk/data/datasources/local/task_local_datasource.dart';
 import 'package:focusdesk/data/datasources/remote/api_client.dart';
 import 'package:focusdesk/data/datasources/remote/suggested_remote_datasource.dart';
+import 'package:focusdesk/data/datasources/media/audio_player_service.dart';
+import 'package:focusdesk/data/repositories/audio_repository.dart';
 import 'package:focusdesk/data/repositories/auth_repository.dart';
 import 'package:focusdesk/data/repositories/task_repository.dart';
 import 'package:focusdesk/data/repositories/suggested_repository.dart';
@@ -26,8 +28,12 @@ class AppDependencies {
     TaskRepository? tasks,
     Dio? dio,
     SuggestedRepository? suggested,
+    AudioRepository? audio,
+    AudioPlayerService Function()? audioPlayerFactory,
   }) : auth = auth ?? AuthRepository(AuthLocalDatasource(prefs)),
        tasks = tasks ?? TaskRepository(TaskLocalDatasource(hive)),
+       audio = audio ?? const AudioRepository(),
+       audioPlayerFactory = audioPlayerFactory ?? JustAudioPlayerService.new,
        dio = ApiClient(dio: dio).dio {
     this.suggested =
         suggested ?? SuggestedRepository(SuggestedRemoteDatasource(this.dio));
@@ -38,6 +44,8 @@ class AppDependencies {
   final TaskRepository tasks;
   final Dio dio;
   late final SuggestedRepository suggested;
+  final AudioRepository audio;
+  final AudioPlayerService Function() audioPlayerFactory;
 }
 
 Future<AppDependencies> bootstrap({
