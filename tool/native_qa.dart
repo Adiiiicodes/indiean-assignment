@@ -10,6 +10,7 @@ import 'package:focusdesk/core/errors/exception_mapper.dart';
 import 'package:focusdesk/core/theme/app_colors.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
 import 'package:focusdesk/core/router/app_router.dart';
+import 'package:focusdesk/core/router/routes.dart';
 import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
 import 'package:focusdesk/data/datasources/local/hive_service.dart';
@@ -140,6 +141,26 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
   String _result = 'Ready for an actual Android storage probe.';
   bool _running = false;
 
+  Future<void> _openTaskForm({bool edit = false}) async {
+    if (_running) return;
+    setState(() => _running = true);
+    try {
+      final cubit = context.read<TaskCubit>();
+      await cubit.load();
+      if (!mounted) return;
+      if (edit && cubit.state.tasks.isEmpty) {
+        setState(() => _result = 'Seed or create a task before editing.');
+        return;
+      }
+      await Navigator.of(context).pushNamed(
+        Routes.taskForm,
+        arguments: edit ? cubit.state.tasks.first : null,
+      );
+    } finally {
+      if (mounted) setState(() => _running = false);
+    }
+  }
+
   Future<void> _probeDependencies() async {
     setState(() {
       _running = true;
@@ -213,6 +234,16 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
                   ),
                 ),
                 child: const Text('Task cubit'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: _running ? null : () => _openTaskForm(),
+                child: const Text('Create task form'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: _running ? null : () => _openTaskForm(edit: true),
+                child: const Text('Edit first saved task'),
               ),
               const SizedBox(height: 12),
               OutlinedButton(

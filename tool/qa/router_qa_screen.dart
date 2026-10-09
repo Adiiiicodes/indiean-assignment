@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:focusdesk/core/router/routes.dart';
+import 'package:focusdesk/data/models/task_model.dart';
 import 'package:focusdesk/shared/widgets/app_button.dart';
 
 class RouterQaScreen extends StatefulWidget {
@@ -31,7 +32,11 @@ class _RouterQaScreenState extends State<RouterQaScreen> {
       route,
       arguments: switch (route) {
         Routes.taskDetails => 'native-task-42',
-        Routes.taskForm || Routes.focus => const {'id': 'native-task-42'},
+        Routes.taskForm => TaskModel(
+          id: 'native-task-42',
+          title: 'Routing task',
+        ),
+        Routes.focus => const {'id': 'native-task-42'},
         _ => null,
       },
     );

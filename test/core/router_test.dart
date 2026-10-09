@@ -8,6 +8,7 @@ import 'package:focusdesk/app.dart';
 import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/router/app_router.dart';
 import 'package:focusdesk/core/router/routes.dart';
+import 'package:focusdesk/data/models/task_model.dart';
 import 'package:focusdesk/features/audio/view/music_screen.dart';
 import 'package:focusdesk/features/auth/view/login_screen.dart';
 import 'package:focusdesk/features/auth/view/signup_screen.dart';
@@ -56,7 +57,7 @@ void main() {
     tester,
   ) async {
     final navigatorKey = GlobalKey<NavigatorState>();
-    final task = Object();
+    final task = TaskModel(id: 'id-42', title: 'Routing task');
     final destinations = <(String, Type, Object?)>[
       (Routes.login, LoginScreen, null),
       (Routes.signup, SignupScreen, null),
@@ -134,6 +135,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(TaskDetailsScreen), findsNothing);
+    expect(find.text(AppStrings.notFoundTitle), findsWidgets);
+    expect(find.text(AppStrings.returnHome), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('invalid task form argument uses the friendly fallback', (
+    tester,
+  ) async {
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(_host(navigatorKey));
+    navigatorKey.currentState!.pushNamed(Routes.taskForm, arguments: 'invalid');
+    await tester.pumpAndSettle();
+    expect(find.byType(TaskFormScreen), findsNothing);
     expect(find.text(AppStrings.notFoundTitle), findsWidgets);
     expect(find.text(AppStrings.returnHome), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());

@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T22
+NEXT_TASK: T23
 
 ## BUILD_CAPABILITY
 full
@@ -43,7 +43,7 @@ full
 - [x] T19 - Home shell with bottom navigation
 - [x] T20 - Tasks tab UI (header, search, filters, list)
 - [x] T21 - TaskCard widget with Hero and checkbox
-- [ ] T22 - Add/Edit task form screen
+- [x] T22 - Add/Edit task form screen
 - [ ] T23 - Task details screen
 - [ ] T24 - Wire up tasks end-to-end and test
 - [ ] T25 - Suggested tasks: model, Dio client, remote datasource
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- features/tasks/view/task_form_screen.dart: typed create/edit form, validated controllers, clearable calendar date, priority/done, busy controls, dirty discard and UUID-preserving retry reconciliation; test/features/tasks/task_form_screen_test.dart12 cases; router validates TaskModel argument.
 - features/tasks/widgets/task_card.dart: themed rounded interactive card, built-in animated checkbox, Hero title, completion strike, description and wrapped priority/date/import badges; test/features/tasks/task_card_test.dart10 cases; TasksTab uses it within existing swipe/undo.
 - features/tasks/view/tasks_tab.dart: time/name greeting,400ms search, combined horizontal filters, lazy sliver list, refresh/loading/empty/error/add routes and swipe/undo retry; test/features/tasks/tasks_tab_test.dart covers20 cases. Shared EmptyView compact option keeps phone CTA visible.
 - features/home/view/home_shell.dart: four IndexedStack tabs, phone NavigationBar, rail at720dp, preserved state across resize and Back-to-Tasks handling; HomeScreen retains auth/logout; media/profile placeholders support embedded bodies and standalone routes; test/features/home/home_shell_test.dart.
@@ -112,6 +113,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- Create form retains one draft UUID. After a failed save it reloads through TaskCubit, updating that UUID if the write had committed before readback failed; otherwise retries add. Success requires matching saved editable fields and success status. Edit preserves identity/source/creation and explicitly clears due dates.
 - TasksTab uses CustomScrollView with SliverList.builder (equivalent lazy builder) so greeting/search/filters can scroll above a small keyboard. Compact empty content fits first phone fold; keyboard metrics observer hides FAB while typing because outer Home Scaffold consumes MediaQuery insets. Undo remains retryable after failed restore. Native slow/failing first reads exist only in development QA launcher and use actual Hive afterward.
 - TaskModel defaults: medium priority/local source/pending/empty description/Untitled task; invalid calendar dates do not normalize silently. Both due getters apply to pending tasks in local calendar days. copyWith(clearDueDate:true) explicitly clears the nullable date; clock helper methods enable deterministic tests.
 - Auth architecture: bootstrap seeds AuthRepository; one app-level AuthCubit remains across named routes. Splash owns session lookup; current-screen Login/Signup/Home listeners perform stack-clearing auth navigation. Home placeholder has a real Logout action for T15, retained when replacing shell until Profile provides final controls. Tests inject repository delay zero; production600ms stays. Native cold-reopen verifies actual prefs, not mock storage.
@@ -149,7 +151,7 @@ full
 
 
 
-- Resident native QA tty session35753, target tool/native_qa.dart, PID13828; production app open, Demo logged in. Three marker tasks remain for form verification: Gamma imported/pending; Beta high/done/pastdue; Alpha low/pending/today. Actual device/font/night mode restored. Use --no-dds; lowercase r reload succeeds, uppercase R intermittently loses connection leaving prior app state; cold build/run resets launcher. Actual accounts/probes remain emulator-only. Task state loads once per identity and logout/replacement invalidates old reads.
+- Resident native QA tty session53569, target tool/native_qa.dart, PID14339; production app open, Demo logged in. Four test tasks remain for details QA: Native form task high/pending/local; Gamma focused plan low/done/imported/description/no due; Beta high/done/pastdue; Alpha low/pending/today. Actual device/font/night mode restored. Use --no-dds; lowercase r reload succeeds, uppercase R intermittently loses connection leaving prior app state; cold build/run resets launcher. Actual accounts/test tasks remain emulator-only. Task state loads once per identity and logout/replacement invalidates old reads.
 
 
 

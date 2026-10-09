@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/router/routes.dart';
+import 'package:focusdesk/data/models/task_model.dart';
 import 'package:focusdesk/features/auth/view/splash_screen.dart';
 import 'package:focusdesk/features/auth/view/login_screen.dart';
 import 'package:focusdesk/features/auth/view/signup_screen.dart';
@@ -23,7 +24,8 @@ abstract final class AppRouter {
       Routes.home => const HomeScreen(),
       Routes.taskDetails when arguments == null || arguments is String =>
         TaskDetailsScreen(taskId: arguments as String?),
-      Routes.taskForm => TaskFormScreen(task: arguments),
+      Routes.taskForm when arguments == null || arguments is TaskModel =>
+        TaskFormScreen(task: arguments as TaskModel?),
       Routes.music => const MusicScreen(),
       Routes.video => const VideoScreen(),
       Routes.profile => const ProfileScreen(),
