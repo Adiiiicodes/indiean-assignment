@@ -14,6 +14,8 @@ import 'package:focusdesk/data/repositories/task_repository.dart';
 import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:focusdesk/features/auth/cubit/auth_state.dart';
 import 'package:focusdesk/features/home/view/home_screen.dart';
+import 'package:focusdesk/features/suggested/cubit/suggested_cubit.dart';
+import 'package:focusdesk/features/suggested/cubit/suggested_state.dart';
 import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
 import 'package:focusdesk/features/tasks/cubit/task_state.dart';
 import 'package:focusdesk/features/tasks/view/task_details_screen.dart';
@@ -24,6 +26,9 @@ import 'package:focusdesk/shared/widgets/app_text_field.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _AuthenticatedCubit extends MockCubit<AuthState> implements AuthCubit {}
+
+class _EmptySuggestions extends MockCubit<SuggestedState>
+    implements SuggestedCubit {}
 
 class _MemoryTasks extends TaskLocalDatasource {
   _MemoryTasks() : super(HiveService());
@@ -56,7 +61,9 @@ Finder _button(String label) => find.byWidgetPredicate(
 
 Future<void> _tapVisible(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
-  await tester.ensureVisible(finder);
+  if (finder.hitTestable().evaluate().isEmpty) {
+    await tester.ensureVisible(finder);
+  }
   await tester.pumpAndSettle();
   await tester.tap(finder);
   await tester.pump();
@@ -117,6 +124,9 @@ void main() {
       final repository = TaskRepository(_MemoryTasks(), now: () => now);
       final cubit = TaskCubit(repository);
       final auth = _AuthenticatedCubit();
+      final suggestions = _EmptySuggestions();
+      when(() => suggestions.state)
+          .thenReturn(SuggestedState(status: SuggestedStatus.success));
       when(() => auth.state).thenReturn(
         Authenticated(
           UserModel(
@@ -129,12 +139,14 @@ void main() {
       );
       addTearDown(cubit.close);
       addTearDown(auth.close);
+      addTearDown(suggestions.close);
       await cubit.load();
       await tester.pumpWidget(
         MultiBlocProvider(
           providers: [
             BlocProvider<AuthCubit>.value(value: auth),
             BlocProvider<TaskCubit>.value(value: cubit),
+            BlocProvider<SuggestedCubit>.value(value: suggestions),
           ],
           child: MaterialApp(
             theme: AppTheme.light,

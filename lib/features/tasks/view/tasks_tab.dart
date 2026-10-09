@@ -19,9 +19,10 @@ import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
 
 class TasksTab extends StatefulWidget {
-  const TasksTab({super.key, this.now});
+  const TasksTab({super.key, this.now, this.active = true});
 
   final DateTime Function()? now;
+  final bool active;
 
   @override
   State<TasksTab> createState() => _TasksTabState();
@@ -199,7 +200,8 @@ class _TasksTabState extends State<TasksTab> with WidgetsBindingObserver {
               );
               setState(() {});
             }
-            if (state.status == TaskStatus.failure &&
+            if (widget.active &&
+                state.status == TaskStatus.failure &&
                 ModalRoute.of(context)?.isCurrent != false) {
               final message = state.errorMessage ?? AppStrings.storageError;
               final deleted = state.lastDeleted;

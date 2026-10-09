@@ -220,6 +220,7 @@ Future<_TaskCubit> _pumpTab(
   Size size = const Size(800, 1000),
   Brightness brightness = Brightness.light,
   List<RouteSettings>? openedRoutes,
+  bool active = true,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -255,7 +256,12 @@ Future<_TaskCubit> _pumpTab(
               .copyWith(textScaler: const TextScaler.linear(1.3)),
           child: child!,
         ),
-        home: Scaffold(body: TasksTab(now: () => DateTime(2026, 10, 9, hour))),
+        home: Scaffold(
+          body: TasksTab(
+            now: () => DateTime(2026, 10, 9, hour),
+            active: active,
+          ),
+        ),
         onGenerateRoute: (settings) {
           openedRoutes?.add(settings);
           return MaterialPageRoute<void>(
@@ -661,6 +667,23 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('inactive My Tasks retains errors without a snackbar', (
+    tester,
+  ) async {
+    final cubit = await _pumpTab(tester, active: false);
+    cubit.publish(
+      cubit.state.copyWith(
+        status: TaskStatus.failure,
+        errorMessage: AppStrings.storageError,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(cubit.state.tasks, _tasks);
+    expect(find.byType(SnackBar), findsNothing);
+    expect(find.text(AppStrings.storageError), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('failed swipe retains the task and shows a friendly error', (
     tester,

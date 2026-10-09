@@ -17,6 +17,7 @@ import 'package:focusdesk/features/profile/view/profile_screen.dart';
 import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
 import 'package:focusdesk/features/tasks/cubit/task_state.dart';
 import 'package:focusdesk/features/tasks/view/tasks_tab.dart';
+import 'package:focusdesk/features/tasks/view/tasks_workspace.dart';
 import 'package:focusdesk/features/video/view/video_screen.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -158,6 +159,14 @@ void main() {
           for (final label in _labels) {
             await _selectTab(tester, label);
             _expectSelected(tester, label);
+            expect(
+              tester
+                  .widget<TasksWorkspace>(
+                    find.byType(TasksWorkspace, skipOffstage: false),
+                  )
+                  .active,
+              label == AppStrings.tasks,
+            );
             for (final entry in _tabTypes.entries) {
               expect(
                 find.byType(entry.value),
