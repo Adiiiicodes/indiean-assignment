@@ -38,6 +38,9 @@ import 'qa/audio_cubit_qa_screen.dart';
 import 'qa/music_states_qa_screen.dart';
 import 'qa/video_states_qa_screen.dart';
 import 'qa/theme_settings_qa_screen.dart';
+import 'qa/focus_repository_qa_screen.dart';
+
+import 'package:focusdesk/data/repositories/focus_repository.dart';
 
 import 'package:focusdesk/features/profile/cubit/theme_cubit.dart';
 import 'package:focusdesk/features/profile/cubit/theme_state.dart';
@@ -100,61 +103,64 @@ class _NativeQaAppState extends State<NativeQaApp> {
     if (_showStartupFailure) {
       return const BootstrapErrorApp(failure: StorageException());
     }
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<ThemeCubit>(
-          create: (_) => ThemeCubit(
-            widget.dependencies.prefs,
-            initialMode: widget.dependencies.initialThemeMode,
-          ),
-        ),
-        BlocProvider<SettingsCubit>(
-          create: (_) => SettingsCubit(
-            widget.dependencies.prefs,
-            initialMinutes: widget.dependencies.initialFocusMinutes,
-          ),
-        ),
-        BlocProvider<AuthCubit>(
-          create: (_) => AuthCubit(widget.dependencies.auth),
-        ),
-        BlocProvider<TaskCubit>(
-          create: (_) => TaskCubit(widget.dependencies.tasks)..load(),
-        ),
-        BlocProvider<ProfileCubit>(
-          create: (context) => ProfileCubit(
-            widget.dependencies.profile,
-            context.read<AuthCubit>(),
-            stopAudio: () => AudioLifecycleBinding.stopIfCreated(context),
-            refreshTasks: () async {
-              final tasks = context.read<TaskCubit>();
-              tasks.reset();
-              await tasks.load();
-            },
-          ),
-        ),
-      ],
-      child: BlocBuilder<ThemeCubit, ThemeState>(
-        builder: (context, themeState) => MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
-          themeMode: themeState.mode,
-          builder: AppTheme.systemUiBuilder,
-          onGenerateRoute: AppRouter.onGenerateRoute,
-          initialRoute: '/native-qa',
-          onGenerateInitialRoutes: (_) => [
-            MaterialPageRoute<void>(
-              settings: const RouteSettings(name: '/native-qa'),
-              builder: (_) => NativeQaScreen(
-                dependencies: widget.dependencies,
-                onStartupFailure: () =>
-                    setState(() => _showStartupFailure = true),
-                onOpenProduction: _openProduction,
-                onOpenSlowTasks: () => _openProduction(slowTasks: true),
-                onOpenFailedTasks: () => _openProduction(failTasks: true),
-              ),
+    return RepositoryProvider<FocusRepository>.value(
+      value: widget.dependencies.focus,
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<ThemeCubit>(
+            create: (_) => ThemeCubit(
+              widget.dependencies.prefs,
+              initialMode: widget.dependencies.initialThemeMode,
             ),
-          ],
+          ),
+          BlocProvider<SettingsCubit>(
+            create: (_) => SettingsCubit(
+              widget.dependencies.prefs,
+              initialMinutes: widget.dependencies.initialFocusMinutes,
+            ),
+          ),
+          BlocProvider<AuthCubit>(
+            create: (_) => AuthCubit(widget.dependencies.auth),
+          ),
+          BlocProvider<TaskCubit>(
+            create: (_) => TaskCubit(widget.dependencies.tasks)..load(),
+          ),
+          BlocProvider<ProfileCubit>(
+            create: (context) => ProfileCubit(
+              widget.dependencies.profile,
+              context.read<AuthCubit>(),
+              stopAudio: () => AudioLifecycleBinding.stopIfCreated(context),
+              refreshTasks: () async {
+                final tasks = context.read<TaskCubit>();
+                tasks.reset();
+                await tasks.load();
+              },
+            ),
+          ),
+        ],
+        child: BlocBuilder<ThemeCubit, ThemeState>(
+          builder: (context, themeState) => MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: themeState.mode,
+            builder: AppTheme.systemUiBuilder,
+            onGenerateRoute: AppRouter.onGenerateRoute,
+            initialRoute: '/native-qa',
+            onGenerateInitialRoutes: (_) => [
+              MaterialPageRoute<void>(
+                settings: const RouteSettings(name: '/native-qa'),
+                builder: (_) => NativeQaScreen(
+                  dependencies: widget.dependencies,
+                  onStartupFailure: () =>
+                      setState(() => _showStartupFailure = true),
+                  onOpenProduction: _openProduction,
+                  onOpenSlowTasks: () => _openProduction(slowTasks: true),
+                  onOpenFailedTasks: () => _openProduction(failTasks: true),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -269,6 +275,15 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const FocusRepositoryQaScreen(),
+                  ),
+                ),
+                child: const Text('QA Focus repository'),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(

@@ -24,6 +24,7 @@ import 'package:focusdesk/features/profile/cubit/theme_state.dart';
 import 'package:focusdesk/features/profile/cubit/settings_cubit.dart';
 import 'package:focusdesk/features/profile/cubit/profile_cubit.dart';
 import 'package:focusdesk/data/repositories/profile_repository.dart';
+import 'package:focusdesk/data/repositories/focus_repository.dart';
 import 'package:focusdesk/features/tasks/cubit/task_state.dart';
 import 'package:focusdesk/core/errors/app_exception.dart';
 
@@ -43,6 +44,7 @@ class FocusDeskApp extends StatelessWidget {
           value: dependencies.profile,
         ),
         RepositoryProvider<TaskRepository>.value(value: dependencies.tasks),
+        RepositoryProvider<FocusRepository>.value(value: dependencies.focus),
         RepositoryProvider<AudioRepository>.value(value: dependencies.audio),
         RepositoryProvider<Dio>.value(value: dependencies.dio),
         RepositoryProvider<SuggestedRepository>.value(

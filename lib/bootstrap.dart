@@ -9,6 +9,8 @@ import 'package:focusdesk/data/datasources/local/hive_service.dart';
 import 'package:focusdesk/data/datasources/local/prefs_service.dart';
 import 'package:focusdesk/data/datasources/local/auth_local_datasource.dart';
 import 'package:focusdesk/data/datasources/local/task_local_datasource.dart';
+import 'package:focusdesk/data/datasources/local/focus_local_datasource.dart';
+import 'package:focusdesk/data/repositories/focus_repository.dart';
 import 'package:focusdesk/data/datasources/remote/api_client.dart';
 import 'package:focusdesk/data/datasources/remote/suggested_remote_datasource.dart';
 import 'package:focusdesk/data/datasources/media/audio_player_service.dart';
@@ -34,6 +36,7 @@ class AppDependencies {
     AudioRepository? audio,
     AudioPlayerService Function()? audioPlayerFactory,
     ProfileRepository? profile,
+    FocusRepository? focus,
   }) : initialThemeMode = ThemeCubit.loadMode(prefs),
        initialFocusMinutes = SettingsCubit.loadMinutes(prefs),
        auth = auth ?? AuthRepository(AuthLocalDatasource(prefs)),
@@ -43,7 +46,11 @@ class AppDependencies {
        dio = ApiClient(dio: dio).dio {
     this.suggested =
         suggested ?? SuggestedRepository(SuggestedRemoteDatasource(this.dio));
-    this.profile = profile ?? ProfileRepository(this.auth, this.tasks, hive);
+    this.focus =
+        focus ?? FocusRepository(FocusLocalDatasource(hive), this.tasks);
+    this.profile =
+        profile ??
+        ProfileRepository(this.auth, this.tasks, hive, focus: this.focus);
   }
   final PrefsService prefs;
   final ThemeMode initialThemeMode;
@@ -56,6 +63,7 @@ class AppDependencies {
   final AudioRepository audio;
   final AudioPlayerService Function() audioPlayerFactory;
   late final ProfileRepository profile;
+  late final FocusRepository focus;
 }
 
 Future<AppDependencies> bootstrap({

@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T40
+NEXT_TASK: T41
 
 ## BUILD_CAPABILITY
 full
@@ -61,7 +61,7 @@ full
 - [x] T37 - Fullscreen and orientation handling
 - [x] T38 - ThemeCubit and settings persistence
 - [x] T39 - Profile / Settings screen
-- [ ] T40 - Focus session model, datasource, repository
+- [x] T40 - Focus session model, datasource, repository
 - [ ] T41 - TimerCubit
 - [ ] T42 - Focus Session screen UI
 - [ ] T43 - Stats card on Home and Profile
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- FocusSessionModel/FocusStats immutable JSON/Equatable; FocusLocalDatasource validates JSON and keyed identity in focus_sessions. FocusRepository queues retry-safe ID saves/clear and consistent reads; local-day grouping, summed-second flooring, done task updated-day count and unique positive-session streak. AppDependencies/app global FocusRepository; Profile clears through its queue.31 model/Hive tests +4 real DI/Profile tests; native FocusRepositoryQaScreen verifies save/read/cold restore/clear.
 - ProfileRepository + ProfileCubit coordinate name edits, account-safe task/session clearing, and stop-before-logout. ProfileScreen/NameDialog provide avatar, validated edits, shared theme/duration selectors, About and confirmed actions. App-scoped lazy Profile provider refreshes Task/Suggested caches. AudioLifecycleBinding.stopIfCreated avoids unused decoder creation; stopForLogout propagates errors before ending auth. Tests:7 repository,18 Cubit,8 Profile journeys,2 lazy/existing audio stop cases; old router/Home/journey providers updated.
 - features/profile/cubit/theme_{cubit,state}.dart and settings_{cubit,state}.dart: synchronous stored mode/duration loaders, serialized persisted updates, friendly failure retaining prior choice. PrefsService typed integer API. AppDependencies captures initial theme/duration before runApp; app-owned providers drive MaterialApp themeMode. Tests36 Cubit +4 root first-frame/system/live-restoration; bootstrap and integer storage integration augmented. Native theme_settings_qa_screen real selectors.
 - VideoOrientation serializes landscape/immersive entry and portrait/manual-bar restoration; physical display width avoids tablet/letterbox mistakes. VideoFullscreenView owns a dark responsive route with the same decoder/position, live revision controls and Exit available while busy. VideoPlayerScreen retains player ancestry across rotations and hides secondary content in landscape. Tests:9 orientation,2 fullscreen layout,4 retained-player layout,13 control cases (including170dp/text1.3 wrapped controls).
@@ -135,6 +136,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T40 attributes a session to its local startedAt day, including sessions crossing midnight; partials count toward sessions and minutes. Sum actual seconds before flooring minutes. Streak uses unique dates with positive actual seconds, anchored today or yesterday, calendar predecessors across DST. TaskModel has no completedAt, so tasksCompletedToday uses currently done tasks updatedAt day; document this approximation. Identical session-ID retries are idempotent, differing duplicate IDs fail friendly storage errors. Reads await previous saves; production Profile clear uses shared FocusRepository queue to prevent pending save resurrection.
 - T39 uses FilledButton inside AlertDialog actions because AppButton LayoutBuilder cannot supply intrinsic dimensions. Profile feedback is scoped to its active tab/current route. Clear task/session data preserves account, session and device settings; partial clear still refreshes visible tasks. Logout stops/reset existing audio before auth, preserving login if decoder stop fails. Native startup is serialized after full tests: initial cold-start PID31587 hit an Android ANR under concurrent host load; quiet starts31829/32530 completed all flows with no newer ANR or checked runtime exceptions. T46/T47 must verify release startup.
 - T38 updates visible selections only after preference write succeeds; queued writes retain order, errors never reveal details, invalid requested minutes do not write. Missing/unknown values use System/25 without rewriting; wrong stored types retain PrefsService friendly StorageException/bootstrap Retry behavior. Theme applies to first Flutter Splash frame; native Android launch background remains system-configured until T45 splash polish. Defaults and theme are device settings, retained across auth changes. New AppDependencies captures startup preferences; QA production handoff constructs a fresh snapshot after native setting changes.
 - T37 uses an app-owned fullscreen route; Chewie disableFullScreenRoute prevents competing rotation/routes. Wait route.completed before restoring inline renderer. Phones restore portraitUp; tablets defer to OS with empty orientation list, and all paths restore visible system overlays. Flutter docs describe Android16/target36 restrictions; actual target36 APK on API35 emulator honors immersive bars/landscape. Native full/portrait positions04s match; fullscreen Play/Pause05s and hardware Back preserve05s. Final Wrap revision also passes04s fullscreen/portrait and decoded plain landscape/text1.3/dark. A forced portrait letterbox exposed a5.5px control overflow; Wrap plus170dp regression fixed it. No Android target downgrade.
@@ -195,8 +197,8 @@ full
 
 
 
-- Production APK PID32530, Profile System/default25, renamed demo user Focus Tester, no tasks; existing audio paused Lo-fi Drift00:00 after logout/login. No resident Flutter tty. Final159-file format/analyze/603tests and debug APK31s passed. Device720x1280/font1.0/OSlight/userrotationfree0/ignoreOrientationRequestfalse. Actual tab labels include newline Tab n of m.
-- 03:00IST10Oct checkpoint:38/52 committed,14remaining;1verifiedcommit/30min; T38tests568/native selector/restart pass and finalproductionstartup pending. ETA4–6h/completion07:00–09:00IST; next checkpoint03:30IST.
+- Production APK PID2517, Tasks empty/Focus Tester, System/default25; focus sessions0 after native probe cleanup. No resident Flutter tty. Final167-file format/analyze/638tests and production debug51.3s passed. Device720x1280/font1.0/OSlight/userrotationfree0/ignoreOrientationRequestfalse. Actual tab labels include newline Tab n of m.
+- 03:30IST10Oct checkpoint:40/52 committed,12remaining;2verifiedcommits/30min. T40native repository flows/638tests passed, finalproduction startup pending. ETA3–5h/completion06:30–08:30IST; next checkpoint04:00IST.
 
 
 
