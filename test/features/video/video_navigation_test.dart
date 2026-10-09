@@ -50,9 +50,12 @@ Widget _host({
       builder: (_) => VideoPlayerScreen(
         video: video,
         videos: videos,
-        playerBuilder: (context, model) => ColoredBox(
-          color: Theme.of(context).colorScheme.surfaceContainerHigh,
-          child: Center(child: Text('Fake player ${model.id}')),
+        playerBuilder: (context, model) => AspectRatio(
+          aspectRatio: 16 / 9,
+          child: ColoredBox(
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            child: Center(child: Text('Fake player ${model.id}')),
+          ),
         ),
       ),
     );

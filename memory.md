@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T36
+NEXT_TASK: T37
 
 ## BUILD_CAPABILITY
 full
@@ -57,7 +57,7 @@ full
 - [x] T33 - Audio states, errors and Android config
 - [x] T34 - Audio integration test with fake service
 - [x] T35 - Video player screen (Chewie, network)
-- [ ] T36 - Video states: buffering, completion/replay, error/retry, time labels
+- [x] T36 - Video states: buffering, completion/replay, error/retry, time labels
 - [ ] T37 - Fullscreen and orientation handling
 - [ ] T38 - ThemeCubit and settings persistence
 - [ ] T39 - Profile / Settings screen
@@ -75,6 +75,8 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- video/cubit/video_view_state.dart: pure7-state mapping/time formatter with12 cases. FocusVideoPlayer listener drives loading/buffering/Replay/error/Retry-local-fallback and explicit background pause. video_playback_controls.dart persistent themed controls, end-only stream-safe seek/time/mute/fullscreen;12 actual-widget cases. Native video_states_qa_screen.dart invokes actual production player with local/missing sources; no fake decoder.
+
 - data/models/video_model.dart and repositories/video_repository.dart: immutable two-video catalog with verified URLs, gradients and honest nature-demo descriptions. VideoScreen/VideoCard responsive list; typed video-player route, injectable player builder and More videos replacement navigation. FocusVideoPlayer owns initialized network controller/Chewie, themed progress, no autoplay and exact cleanup. Navigation/router tests cover narrow/text1.3/themes/wide/replacement/invalid arguments.
 
 - test/features/audio/music_player_flow_test.dart: full FocusDeskApp/router/Home/auth/lifecycle/real AudioCubit journey with fake decoder only; actual taps/seek/next/previous/restart/completion/Replay/error/Retry/route retention/background/disposal. App player factory stays lazy and single.
@@ -130,6 +132,8 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T36 hides Chewie controls and consistently uses our always-visible controls beneath the actual-ratio frame. Retry reinitializes with bundled fallback (or original when no fallback configured), labels Local demo clip and starts paused. Background lifecycle policy is app-owned: VideoPlayerOptions.allowBackgroundPlayback true disables plugin automatic-resume observer; our observer still pauses all non-resumed states, waits pending work, catches late Play, and never autoplays on resume. Pause-future completion explicitly repaints enabled controls.
+
 - T35 More videos replaces the current player route, keeping one player alive and Back returning to Videos. Controller initializes paused; actual aspect ratio used. Demo copy describes real butterfly/bee footage rather than implying instructional content. Native Chewie controls auto-hide even paused: reveal controls and wait for seek buffering before testing mute.
 
 - Focus screen must reuse context.read<AudioCubit>() from app-owned AudioLifecycleBinding. init is idempotent; route changes retain the selected playlist/position. UI calls Cubit controls; Cubit owns streamed app statuses and service; service owns just_audio decoder/fallback/recovery. Focus routes never dispose this shared decoder; explicit pause/stop for session actions, app provider closes it. Test substitute only AudioPlayerService via AppDependencies.audioPlayerFactory.
@@ -185,7 +189,7 @@ full
 
 
 
-- Production APK PID27217 (T35 native video library after player Back); no resident Flutter tty. Debug APK build/install/start workflow verified. Device720x1280/font1.0/light, WiFi/data enabled; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
+- Production APK PID28750 (T36 native video library after player Back); no resident Flutter tty. Debug APK build/install/start workflow verified. Device720x1280/font1.0/light, WiFi/data enabled; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
 - 02:00IST10Oct checkpoint:34/52 committed,18remaining;2verifiedcommits/30min; ETA5–7h/completion07:00–09:00IST. Next checkpoint02:30IST.
 
 

@@ -36,6 +36,7 @@ import 'qa/media_assets_qa_screen.dart';
 import 'qa/audio_service_qa_screen.dart';
 import 'qa/audio_cubit_qa_screen.dart';
 import 'qa/music_states_qa_screen.dart';
+import 'qa/video_states_qa_screen.dart';
 
 Future<void> main() async {
   try {
@@ -233,6 +234,28 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const VideoStatesQaScreen(
+                      scenario: VideoQaScenario.local,
+                    ),
+                  ),
+                ),
+                child: const Text('QA Video local'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const VideoStatesQaScreen(
+                      scenario: VideoQaScenario.failureThenRetry,
+                    ),
+                  ),
+                ),
+                child: const Text('QA Video failure'),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(

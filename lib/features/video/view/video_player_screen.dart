@@ -62,19 +62,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: AspectRatio(
+                  if (widget.playerBuilder != null)
+                    KeyedSubtree(
                       key: const ValueKey('video-player-frame'),
-                      aspectRatio: 16 / 9,
-                      child:
-                          widget.playerBuilder?.call(context, video) ??
-                          FocusVideoPlayer(
-                            key: ValueKey(video.id),
-                            video: video,
-                          ),
-                    ),
-                  ),
+                      child: widget.playerBuilder!(context, video),
+                    )
+                  else
+                    FocusVideoPlayer(key: ValueKey(video.id), video: video),
                   const SizedBox(height: 20),
                   Text(video.title, style: theme.textTheme.headlineSmall),
                   const SizedBox(height: 8),

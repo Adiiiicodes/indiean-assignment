@@ -123,6 +123,8 @@ abstract final class AppStrings {
   static const noSuggestedMessage = 'Refresh to look for more ideas.';
   static const play = 'Play';
   static const pause = 'Pause';
+  static const mute = 'Mute';
+  static const unmute = 'Unmute';
   static const previousTrack = 'Previous track';
   static const nextTrack = 'Next track';
   static const seek = 'Seek';
@@ -133,6 +135,7 @@ abstract final class AppStrings {
   static const buffering = 'Buffering…';
   static const completed = 'Completed';
   static const offlinePlayback = 'Playing the local fallback';
+  static const localVideoFallback = 'Local demo clip';
   static const musicSubtitle = 'A soundtrack for your next focus session.';
   static const focusTracks = 'Focus tracks';
   static const repeatAllOn = 'Repeat all: on';
