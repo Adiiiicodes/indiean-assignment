@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:focusdesk/bootstrap.dart';
 import 'package:focusdesk/data/datasources/local/hive_service.dart';
 import 'package:focusdesk/data/datasources/local/prefs_service.dart';
+import 'package:focusdesk/data/repositories/auth_repository.dart';
 import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
 import 'package:focusdesk/core/router/app_router.dart';
@@ -19,6 +20,7 @@ class FocusDeskApp extends StatelessWidget {
         RepositoryProvider<AppDependencies>.value(value: dependencies),
         RepositoryProvider<PrefsService>.value(value: dependencies.prefs),
         RepositoryProvider<HiveService>.value(value: dependencies.hive),
+        RepositoryProvider<AuthRepository>.value(value: dependencies.auth),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

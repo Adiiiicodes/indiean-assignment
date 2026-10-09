@@ -22,6 +22,7 @@ dependencies:
   chewie: ^1.17.2
   intl: ^0.20.3
   uuid: ^4.6.0
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T10
+NEXT_TASK: T11
 
 ## BUILD_CAPABILITY
 full
@@ -31,7 +31,7 @@ full
 - [x] T07 - Shared reusable widgets
 - [x] T08 - Local storage services (Hive + SharedPreferences)
 - [x] T09 - Routing and screen placeholders
-- [ ] T10 - User model, auth datasource and repository (mock)
+- [x] T10 - User model, auth datasource and repository (mock)
 - [ ] T11 - AuthCubit and states
 - [ ] T12 - Splash screen with session redirect
 - [ ] T13 - Login screen
@@ -75,6 +75,8 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- lib/data/models/user_model.dart: immutable JSON/Equatable user; local/auth_local_datasource.dart: seeded accounts/hash/session; repositories/auth_repository.dart: validated injectable-delay auth operations.
+- test/data/{user_model,auth_repository}_test.dart and tool/qa/auth_repository_qa_screen.dart: model/auth tests and actual native account flow.
 - lib/core/router/{routes,app_router}.dart: ten named routes, argument forwarding, fade/slide transitions and safe fallback; ten feature screen placeholders; test/core/router_test.dart and native routing gallery.
 - lib/bootstrap.dart: binding/storage initialization, AppDependencies and friendly startup Retry; app root provides dependencies via RepositoryProvider.
 - lib/data/datasources/local/{prefs_service,hive_service}.dart: injectable friendly storage wrappers; test/data covers disk persistence, failures and startup.
@@ -99,6 +101,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- Mock passwords stored only as SHA-256 through crypto3.0.7; this is assignment demo authentication, not production security. Email normalized; input password kept exact; corrupt accounts fail without overwriting. Default auth delay600ms, injectable zero in tests.
 - Use current Flutter ThemeData APIs (CardThemeData, InputDecorationThemeData, AppBarThemeData). Native QA root switches through normal widget state; avoid calling runApp again from gesture callbacks. System-bar contrast is explicitly coordinated with the scheme.
 - Added SDK integration_test dev dependency for real Android flows. tool/native_qa.dart is a development-only entrypoint for touching real components before production screens exist; production lib/main.dart never imports it. Foundation probes and ordinary app checks are recorded separately.
 - Gradle uses the already-cached 9.3.1 bin distribution; heap 3GB/workers4 fit the host with its emulator. NDK27.1.12297006 passed the scaffold build; T03 added JNI native compilation through path_provider, so app now uses default NDK28.2.13676358.
@@ -132,7 +135,8 @@ full
 
 
 
-- Resident native QA Flutter run session: 9512, target tool/native_qa.dart. Use R for source restart. QA initial route is /native-qa so the real splash / route resolves through AppRouter.
+- Native QA run currently stopped after cold auth persistence verification. Next run target tool/native_qa.dart explicitly (attach defaults to production main unless -t is specified). QA initial route /native-qa allows real splash / through AppRouter.
+
 
 
 

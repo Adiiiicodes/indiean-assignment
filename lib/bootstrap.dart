@@ -6,14 +6,21 @@ import 'package:focusdesk/core/errors/exception_mapper.dart';
 import 'package:focusdesk/core/theme/app_theme.dart';
 import 'package:focusdesk/data/datasources/local/hive_service.dart';
 import 'package:focusdesk/data/datasources/local/prefs_service.dart';
+import 'package:focusdesk/data/datasources/local/auth_local_datasource.dart';
+import 'package:focusdesk/data/repositories/auth_repository.dart';
 import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppDependencies {
-  const AppDependencies({required this.prefs, required this.hive});
+  AppDependencies({
+    required this.prefs,
+    required this.hive,
+    AuthRepository? auth,
+  }) : auth = auth ?? AuthRepository(AuthLocalDatasource(prefs));
   final PrefsService prefs;
   final HiveService hive;
+  final AuthRepository auth;
 }
 
 Future<AppDependencies> bootstrap({
@@ -26,7 +33,12 @@ Future<AppDependencies> bootstrap({
     await hive.init();
     final preferences =
         await (preferencesLoader ?? SharedPreferences.getInstance)();
-    return AppDependencies(prefs: PrefsService(preferences), hive: hive);
+    final dependencies = AppDependencies(
+      prefs: PrefsService(preferences),
+      hive: hive,
+    );
+    await dependencies.auth.initialize();
+    return dependencies;
   } catch (_) {
     // Release any box opened before initialization failed, so Retry is clean.
     try {

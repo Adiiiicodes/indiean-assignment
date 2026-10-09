@@ -17,6 +17,7 @@ import 'qa/core_qa_screen.dart';
 import 'qa/shared_qa_screen.dart';
 import 'qa/storage_qa_screen.dart';
 import 'qa/router_qa_screen.dart';
+import 'qa/auth_repository_qa_screen.dart';
 
 Future<void> main() async {
   try {
@@ -153,6 +154,17 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => AuthRepositoryQaScreen(
+                      repository: widget.dependencies.auth,
+                    ),
+                  ),
+                ),
+                child: const Text('Auth repository'),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
