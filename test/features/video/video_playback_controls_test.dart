@@ -290,6 +290,31 @@ void main() {
     },
   );
 
+  testWidgets('narrow Android letterbox wraps controls without clipping', (
+    tester,
+  ) async {
+    final harness = _Harness();
+    await _pump(
+      tester,
+      harness,
+      size: const Size(170, 568),
+      brightness: Brightness.dark,
+      textScale: 1.3,
+    );
+    final play = tester.getRect(_key('play-pause'));
+    final fullscreen = tester.getRect(_key('fullscreen'));
+    expect(fullscreen.top, greaterThan(play.top));
+    for (final action in ['play-pause', 'mute', 'fullscreen']) {
+      final bounds = tester.getRect(_key(action));
+      expect(bounds.left, greaterThanOrEqualTo(0));
+      expect(bounds.right, lessThanOrEqualTo(170));
+    }
+    await tester.tap(_key('fullscreen'));
+    await tester.pumpAndSettle();
+    expect(harness.fullscreenCalls, 1);
+    expect(tester.takeException(), isNull);
+  });
+
   for (final brightness in Brightness.values) {
     testWidgets('320x568 text1.3 ${brightness.name} controls remain tappable', (
       tester,

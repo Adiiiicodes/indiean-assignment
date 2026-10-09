@@ -51,57 +51,81 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     final otherVideos = (widget.videos ?? const VideoRepository().videos)
         .where((candidate) => candidate.id != video.id)
         .toList(growable: false);
-    return Scaffold(
-      appBar: AppBar(title: Text(video.title)),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 960),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (widget.playerBuilder != null)
-                    KeyedSubtree(
-                      key: const ValueKey('video-player-frame'),
-                      child: widget.playerBuilder!(context, video),
-                    )
-                  else
-                    FocusVideoPlayer(key: ValueKey(video.id), video: video),
-                  const SizedBox(height: 20),
-                  Text(video.title, style: theme.textTheme.headlineSmall),
-                  const SizedBox(height: 8),
-                  const Chip(label: Text(AppStrings.demoMedia)),
-                  const SizedBox(height: 8),
-                  Text(
-                    video.description,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        final landscape = orientation == Orientation.landscape;
+        final padding = landscape ? 8.0 : 16.0;
+        return Scaffold(
+          appBar: landscape ? null : AppBar(title: Text(video.title)),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                padding: EdgeInsets.all(padding),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 960),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // The same first subtree retains its decoder on resize.
+                        SizedBox(
+                          height: landscape
+                              ? (constraints.maxHeight - padding * 2)
+                                    .clamp(0.0, double.infinity)
+                                    .toDouble()
+                              : null,
+                          child: KeyedSubtree(
+                            key: const ValueKey('video-player-frame'),
+                            child:
+                                widget.playerBuilder?.call(context, video) ??
+                                FocusVideoPlayer(
+                                  key: ValueKey(video.id),
+                                  video: video,
+                                  compact: landscape,
+                                ),
+                          ),
+                        ),
+                        if (!landscape) ...[
+                          const SizedBox(height: 20),
+                          Text(
+                            video.title,
+                            style: theme.textTheme.headlineSmall,
+                          ),
+                          const SizedBox(height: 8),
+                          const Chip(label: Text(AppStrings.demoMedia)),
+                          const SizedBox(height: 8),
+                          Text(
+                            video.description,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          if (otherVideos.isNotEmpty) ...[
+                            const SizedBox(height: 28),
+                            Text(
+                              AppStrings.moreVideos,
+                              style: theme.textTheme.titleLarge,
+                            ),
+                            const SizedBox(height: 12),
+                            for (final other in otherVideos) ...[
+                              VideoCard(
+                                key: ValueKey('more-video-${other.id}'),
+                                video: other,
+                                onTap: () => unawaited(_openVideo(other)),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                          ],
+                        ],
+                      ],
                     ),
                   ),
-                  if (otherVideos.isNotEmpty) ...[
-                    const SizedBox(height: 28),
-                    Text(
-                      AppStrings.moreVideos,
-                      style: theme.textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 12),
-                    for (final other in otherVideos) ...[
-                      VideoCard(
-                        key: ValueKey('more-video-${other.id}'),
-                        video: other,
-                        onTap: () => unawaited(_openVideo(other)),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                  ],
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

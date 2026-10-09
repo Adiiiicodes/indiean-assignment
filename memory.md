@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T37
+NEXT_TASK: T38
 
 ## BUILD_CAPABILITY
 full
@@ -58,7 +58,7 @@ full
 - [x] T34 - Audio integration test with fake service
 - [x] T35 - Video player screen (Chewie, network)
 - [x] T36 - Video states: buffering, completion/replay, error/retry, time labels
-- [ ] T37 - Fullscreen and orientation handling
+- [x] T37 - Fullscreen and orientation handling
 - [ ] T38 - ThemeCubit and settings persistence
 - [ ] T39 - Profile / Settings screen
 - [ ] T40 - Focus session model, datasource, repository
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- VideoOrientation serializes landscape/immersive entry and portrait/manual-bar restoration; physical display width avoids tablet/letterbox mistakes. VideoFullscreenView owns a dark responsive route with the same decoder/position, live revision controls and Exit available while busy. VideoPlayerScreen retains player ancestry across rotations and hides secondary content in landscape. Tests:9 orientation,2 fullscreen layout,4 retained-player layout,13 control cases (including170dp/text1.3 wrapped controls).
 - video/cubit/video_view_state.dart: pure7-state mapping/time formatter with12 cases. FocusVideoPlayer listener drives loading/buffering/Replay/error/Retry-local-fallback and explicit background pause. video_playback_controls.dart persistent themed controls, end-only stream-safe seek/time/mute/fullscreen;12 actual-widget cases. Native video_states_qa_screen.dart invokes actual production player with local/missing sources; no fake decoder.
 
 - data/models/video_model.dart and repositories/video_repository.dart: immutable two-video catalog with verified URLs, gradients and honest nature-demo descriptions. VideoScreen/VideoCard responsive list; typed video-player route, injectable player builder and More videos replacement navigation. FocusVideoPlayer owns initialized network controller/Chewie, themed progress, no autoplay and exact cleanup. Navigation/router tests cover narrow/text1.3/themes/wide/replacement/invalid arguments.
@@ -132,6 +133,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T37 uses an app-owned fullscreen route; Chewie disableFullScreenRoute prevents competing rotation/routes. Wait route.completed before restoring inline renderer. Phones restore portraitUp; tablets defer to OS with empty orientation list, and all paths restore visible system overlays. Flutter docs describe Android16/target36 restrictions; actual target36 APK on API35 emulator honors immersive bars/landscape. Native full/portrait positions04s match; fullscreen Play/Pause05s and hardware Back preserve05s. Final Wrap revision also passes04s fullscreen/portrait and decoded plain landscape/text1.3/dark. A forced portrait letterbox exposed a5.5px control overflow; Wrap plus170dp regression fixed it. No Android target downgrade.
 - T36 hides Chewie controls and consistently uses our always-visible controls beneath the actual-ratio frame. Retry reinitializes with bundled fallback (or original when no fallback configured), labels Local demo clip and starts paused. Background lifecycle policy is app-owned: VideoPlayerOptions.allowBackgroundPlayback true disables plugin automatic-resume observer; our observer still pauses all non-resumed states, waits pending work, catches late Play, and never autoplays on resume. Pause-future completion explicitly repaints enabled controls.
 
 - T35 More videos replaces the current player route, keeping one player alive and Back returning to Videos. Controller initializes paused; actual aspect ratio used. Demo copy describes real butterfly/bee footage rather than implying instructional content. Native Chewie controls auto-hide even paused: reveal controls and wait for seek buffering before testing mute.
@@ -189,8 +191,8 @@ full
 
 
 
-- Production APK PID28750 (T36 native video library after player Back); no resident Flutter tty. Debug APK build/install/start workflow verified. Device720x1280/font1.0/light, WiFi/data enabled; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
-- 02:00IST10Oct checkpoint:34/52 committed,18remaining;2verifiedcommits/30min; ETA5–7h/completion07:00–09:00IST. Next checkpoint02:30IST.
+- Production APK PID30292 (T37 native video library after player Back); no resident Flutter tty. Final144-file format/analyze/528tests and debug APK passed. Device720x1280/font1.0/light/userrotationfree0/ignoreOrientationRequestfalse restored; nine agent-only tasks retained. Actual tab labels include newline Tab n of m.
+- 02:30IST10Oct checkpoint:37/52 committed,15remaining;3verifiedcommits/30min; ETA4–6h/completion06:30–08:30IST. CurrentT37fullscreen; next checkpoint03:00IST.
 
 
 

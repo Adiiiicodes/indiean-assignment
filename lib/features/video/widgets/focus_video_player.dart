@@ -6,6 +6,8 @@ import 'package:focusdesk/core/constants/app_strings.dart';
 import 'package:focusdesk/core/constants/media_urls.dart';
 import 'package:focusdesk/data/models/video_model.dart';
 import 'package:focusdesk/features/video/cubit/video_view_state.dart';
+import 'package:focusdesk/features/video/utils/video_orientation.dart';
+import 'package:focusdesk/features/video/widgets/video_fullscreen_view.dart';
 import 'package:focusdesk/features/video/widgets/video_playback_controls.dart';
 import 'package:focusdesk/shared/widgets/app_button.dart';
 import 'package:focusdesk/shared/widgets/empty_view.dart';
@@ -17,6 +19,7 @@ class FocusVideoPlayer extends StatefulWidget {
     this.fallbackAsset = MediaUrls.fallbackVideoAsset,
     this.loadTimeout = const Duration(seconds: 15),
     this.controllerFactory,
+    this.compact = false,
     super.key,
   });
 
@@ -24,6 +27,7 @@ class FocusVideoPlayer extends StatefulWidget {
   final String? fallbackAsset;
   final Duration loadTimeout;
   final VideoPlayerController Function(String source)? controllerFactory;
+  final bool compact;
 
   @override
   State<FocusVideoPlayer> createState() => _FocusVideoPlayerState();
@@ -45,6 +49,19 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
   Future<void>? _actionFuture;
   Future<void>? _pauseFuture;
   int _generation = 0;
+  final _revision = ValueNotifier<int>(0);
+  final _orientation = VideoOrientation();
+  bool _fullscreen = false;
+  bool _openingFullscreen = false;
+  Route<void>? _fullscreenRoute;
+  NavigatorState? _fullscreenNavigator;
+  bool _restorePortrait = true;
+
+  void _refresh(VoidCallback change) {
+    if (!mounted) return;
+    setState(change);
+    _revision.value++;
+  }
 
   @override
   void initState() {
@@ -58,9 +75,18 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final display = View.of(context).display;
+    _restorePortrait =
+        display.size.shortestSide / display.devicePixelRatio < 600;
+  }
+
+  @override
   void didUpdateWidget(covariant FocusVideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.video.source != widget.video.source) {
+      _exitFullscreen();
       unawaited(_load(replace: true));
     }
   }
@@ -111,7 +137,7 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
   Future<void> _initialize({required bool fallback}) async {
     final generation = ++_generation;
     _releaseControllers();
-    setState(() {
+    _refresh(() {
       _failed = false;
       _loading = true;
       _busy = false;
@@ -144,6 +170,7 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
         autoPlay: false,
         showControls: false,
         allowFullScreen: true,
+        disableFullScreenRoute: true,
         allowMuting: true,
         looping: false,
         materialProgressColors: ChewieProgressColors(
@@ -154,7 +181,7 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
         ),
         errorBuilder: (context, _) => const SizedBox.shrink(),
       );
-      setState(() {
+      _refresh(() {
         _chewie = chewie;
         _loading = false;
       });
@@ -162,7 +189,7 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
       if (controller != null) unawaited(_releaseVideo(controller));
       if (!mounted || generation != _generation) return;
       _releaseControllers();
-      setState(() {
+      _refresh(() {
         _failed = true;
         _loading = false;
       });
@@ -192,7 +219,7 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
         unawaited(_pauseAfterWork());
       }
     }
-    setState(() {});
+    _refresh(() {});
   }
 
   Future<void> _run(Future<void> Function(VideoPlayerController) action) {
@@ -219,13 +246,13 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
     Future<void> Function(VideoPlayerController) action,
   ) async {
     final generation = _generation;
-    setState(() => _busy = true);
+    _refresh(() => _busy = true);
     try {
       await action(controller);
     } catch (_) {
-      if (mounted && generation == _generation) setState(() => _failed = true);
+      if (mounted && generation == _generation) _refresh(() => _failed = true);
     } finally {
-      if (mounted && generation == _generation) setState(() => _busy = false);
+      if (mounted && generation == _generation) _refresh(() => _busy = false);
     }
   }
 
@@ -251,7 +278,7 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    setState(() => _appActive = state == AppLifecycleState.resumed);
+    _refresh(() => _appActive = state == AppLifecycleState.resumed);
     if (!_appActive) unawaited(_pauseAfterWork());
   }
 
@@ -262,7 +289,7 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
     future = _pauseCurrent().whenComplete(() {
       if (identical(_pauseFuture, future)) {
         if (mounted) {
-          setState(() => _pauseFuture = null);
+          _refresh(() => _pauseFuture = null);
         } else {
           _pauseFuture = null;
         }
@@ -284,26 +311,120 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
         await controller.pause();
       } catch (_) {
         if (mounted && generation == _generation) {
-          setState(() => _failed = true);
+          _refresh(() => _failed = true);
         }
       }
     } while (mounted && generation == _generation && _pauseAgain);
+  }
+
+  Future<void> _enterFullscreen() async {
+    if (_openingFullscreen ||
+        _fullscreen ||
+        _chewie == null ||
+        !_appActive ||
+        _busy ||
+        _status == VideoViewState.error) {
+      return;
+    }
+    final generation = _generation;
+    final navigator = Navigator.of(context, rootNavigator: true);
+    _refresh(() => _openingFullscreen = true);
+    try {
+      await _orientation.enterFullscreen();
+      if (!mounted || generation != _generation || !navigator.mounted) return;
+      _fullscreenNavigator = navigator;
+      _refresh(() => _fullscreen = true);
+      _chewie?.enterFullScreen();
+      final route = PageRouteBuilder<void>(
+        settings: const RouteSettings(name: 'video-fullscreen'),
+        transitionDuration: const Duration(milliseconds: 180),
+        reverseTransitionDuration: const Duration(milliseconds: 180),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            AnimatedBuilder(
+              animation: _revision,
+              builder: (context, child) {
+                if (!mounted || generation != _generation || _video == null) {
+                  return const SizedBox.shrink();
+                }
+                return VideoFullscreenView(
+                  frame: _frame(context, fullscreen: true),
+                  controls: _controls(fullscreen: true, compact: true),
+                );
+              },
+            ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(opacity: animation, child: child),
+      );
+      _fullscreenRoute = route;
+      await navigator.push(route);
+      await route.completed;
+    } catch (_) {
+      if (mounted && generation == _generation) _refresh(() => _failed = true);
+    } finally {
+      _fullscreenRoute = null;
+      _fullscreenNavigator = null;
+      if (mounted) {
+        _chewie?.exitFullScreen();
+        _refresh(() {
+          _fullscreen = false;
+          _openingFullscreen = false;
+        });
+      }
+      await _restoreOrientation();
+    }
+  }
+
+  void _exitFullscreen() {
+    final route = _fullscreenRoute;
+    final navigator = _fullscreenNavigator;
+    if (route != null && route.isCurrent && navigator?.mounted == true) {
+      navigator!.pop();
+    }
+  }
+
+  Future<void> _restoreOrientation() async {
+    try {
+      await _orientation.exitFullscreen(restorePortrait: _restorePortrait);
+    } catch (_) {
+      // The helper still restores visible overlays if rotation is unavailable.
+    }
   }
 
   @override
   void dispose() {
     _generation++;
     WidgetsBinding.instance.removeObserver(this);
+    final route = _fullscreenRoute;
+    final navigator = _fullscreenNavigator;
+    if (route != null && navigator?.mounted == true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (navigator!.mounted && route.isActive) navigator.removeRoute(route);
+      });
+    }
+    _chewie?.exitFullScreen();
     _releaseControllers();
+    unawaited(_restoreOrientation());
+    _revision.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _frame(BuildContext context, {bool fullscreen = false}) {
     final chewie = _chewie;
-    final value = _video?.value;
     final status = _status;
-    final frame = ClipRRect(
+    if (status == VideoViewState.error) {
+      return EmptyView(
+        compact: true,
+        icon: Icons.error_outline_rounded,
+        title: AppStrings.errorTitle,
+        message: AppStrings.mediaError,
+        actionLabel: AppStrings.retry,
+        onAction: () {
+          if (fullscreen) _exitFullscreen();
+          unawaited(_load(fallback: true));
+        },
+      );
+    }
+    return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: ColoredBox(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -312,7 +433,10 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              if (chewie != null) Chewie(controller: chewie),
+              if (fullscreen && _video != null)
+                VideoPlayer(_video!)
+              else if (!_fullscreen && chewie != null)
+                Chewie(controller: chewie),
               if (status == VideoViewState.loading ||
                   status == VideoViewState.buffering)
                 CircularProgressIndicator(
@@ -333,53 +457,79 @@ class _FocusVideoPlayerState extends State<FocusVideoPlayer>
         ),
       ),
     );
+  }
+
+  Widget _controls({bool fullscreen = false, bool compact = false}) {
+    final value = _video?.value;
+    return VideoPlaybackControls(
+      key: ValueKey('video-controls-$_generation-$fullscreen'),
+      compact: compact,
+      fullscreen: fullscreen,
+      status: _status,
+      position: value?.position ?? Duration.zero,
+      duration: value?.isInitialized ?? false ? value!.duration : null,
+      busy:
+          _busy ||
+          !_appActive ||
+          _pauseFuture != null ||
+          (_openingFullscreen && !fullscreen),
+      muted: value?.volume == 0,
+      onPlayPause: () => unawaited(_togglePlayback()),
+      onSeek: (position) => unawaited(
+        _run((controller) {
+          final duration = controller.value.duration;
+          final safe = position < Duration.zero
+              ? Duration.zero
+              : position > duration
+              ? duration
+              : position;
+          return controller.seekTo(safe);
+        }),
+      ),
+      onMute: () => unawaited(
+        _run(
+          (controller) =>
+              controller.setVolume(controller.value.volume == 0 ? 1 : 0),
+        ),
+      ),
+      onFullscreen: fullscreen
+          ? _exitFullscreen
+          : () => unawaited(_enterFullscreen()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.compact) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final height = constraints.hasBoundedHeight
+              ? constraints.maxHeight
+              : 300.0;
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: (height - 88).clamp(0.0, height),
+                child: Center(child: _frame(context)),
+              ),
+              _controls(compact: true),
+            ],
+          );
+        },
+      );
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (status == VideoViewState.error)
-          EmptyView(
-            compact: true,
-            icon: Icons.error_outline_rounded,
-            title: AppStrings.errorTitle,
-            message: AppStrings.mediaError,
-            actionLabel: AppStrings.retry,
-            onAction: () => unawaited(_load(fallback: true)),
-          )
-        else
-          frame,
+        _frame(context),
         if (_usingFallback)
           const Align(
             alignment: Alignment.centerLeft,
             child: Chip(label: Text(AppStrings.localVideoFallback)),
           ),
-        VideoPlaybackControls(
-          key: ValueKey(_generation),
-          status: status,
-          position: value?.position ?? Duration.zero,
-          duration: value?.isInitialized ?? false ? value!.duration : null,
-          busy: _busy || !_appActive || _pauseFuture != null,
-          muted: value?.volume == 0,
-          onPlayPause: () => unawaited(_togglePlayback()),
-          onSeek: (position) => unawaited(
-            _run((controller) {
-              final duration = controller.value.duration;
-              final safe = position < Duration.zero
-                  ? Duration.zero
-                  : position > duration
-                  ? duration
-                  : position;
-              return controller.seekTo(safe);
-            }),
-          ),
-          onMute: () => unawaited(
-            _run(
-              (controller) =>
-                  controller.setVolume(controller.value.volume == 0 ? 1 : 0),
-            ),
-          ),
-          onFullscreen: () => _chewie?.enterFullScreen(),
-        ),
+        _controls(),
       ],
     );
   }

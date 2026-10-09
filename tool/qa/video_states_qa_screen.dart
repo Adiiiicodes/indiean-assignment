@@ -29,8 +29,9 @@ class VideoStatesQaScreen extends StatelessWidget {
     return VideoPlayerScreen(
       video: video,
       videos: catalog,
-      playerBuilder: (_, model) => FocusVideoPlayer(
+      playerBuilder: (context, model) => FocusVideoPlayer(
         video: model,
+        compact: MediaQuery.orientationOf(context) == Orientation.landscape,
         fallbackAsset: MediaUrls.fallbackVideoAsset,
         loadTimeout: const Duration(seconds: 4),
       ),
