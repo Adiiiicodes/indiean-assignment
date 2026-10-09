@@ -8,6 +8,8 @@ import 'package:focusdesk/data/datasources/local/hive_service.dart';
 import 'package:focusdesk/data/datasources/local/prefs_service.dart';
 import 'package:focusdesk/data/repositories/auth_repository.dart';
 import 'package:focusdesk/data/repositories/task_repository.dart';
+import 'package:focusdesk/data/repositories/suggested_repository.dart';
+import 'package:focusdesk/features/suggested/cubit/suggested_cubit.dart';
 import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:focusdesk/features/auth/cubit/auth_state.dart';
 import 'package:focusdesk/features/tasks/cubit/task_cubit.dart';
@@ -30,11 +32,20 @@ class FocusDeskApp extends StatelessWidget {
         RepositoryProvider<AuthRepository>.value(value: dependencies.auth),
         RepositoryProvider<TaskRepository>.value(value: dependencies.tasks),
         RepositoryProvider<Dio>.value(value: dependencies.dio),
+        RepositoryProvider<SuggestedRepository>.value(
+          value: dependencies.suggested,
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AuthCubit>(create: (_) => AuthCubit(dependencies.auth)),
           BlocProvider<TaskCubit>(create: (_) => TaskCubit(dependencies.tasks)),
+          BlocProvider<SuggestedCubit>(
+            create: (context) => SuggestedCubit(
+              dependencies.suggested,
+              context.read<TaskCubit>(),
+            ),
+          ),
         ],
         child: _TaskSessionBinding(
           child: MaterialApp(
@@ -75,10 +86,12 @@ class _TaskSessionBindingState extends State<_TaskSessionBinding> {
       _userId = state.user.id;
       final tasks = context.read<TaskCubit>();
       tasks.reset();
+      context.read<SuggestedCubit>().reset();
       unawaited(tasks.load());
     } else if (state is Unauthenticated) {
       _userId = null;
       context.read<TaskCubit>().reset();
+      context.read<SuggestedCubit>().reset();
     }
   }
 

@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T26
+NEXT_TASK: T27
 
 ## BUILD_CAPABILITY
 full
@@ -47,7 +47,7 @@ full
 - [x] T23 - Task details screen
 - [x] T24 - Wire up tasks end-to-end and test
 - [x] T25 - Suggested tasks: model, Dio client, remote datasource
-- [ ] T26 - Suggested repository and cubit (pagination + refresh)
+- [x] T26 - Suggested repository and cubit (pagination + refresh)
 - [ ] T27 - Suggested tab UI and tab bar in Tasks
 - [ ] T28 - API flow verification
 - [ ] T29 - Verify media URLs and add local fallbacks
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- data/repositories/suggested_repository.dart and features/suggested/cubit/: immutable pagination/import state, live offsets and retained error retry, serialized stable-ID imports through shared TaskCubit, Added tracking after delete/Undo/clear; app-scoped DI and auth cache reset. Tests28 plus1 app-session test; native suggested_cubit_qa_screen.dart.
 - data/models/suggested_{task,page}_model.dart: strict typed API items, stable imported Task mapper, immutable page/count/progress validation; data/datasources/remote/{api_client,suggested_remote_datasource}.dart: injected Dio/baseURL/timeouts/debug metadata logging and friendly fetch errors. AppDependencies.dio and app provider; model25/datasource26 tests plus injected-Dio bootstrap case. tool/qa/suggested_api_qa_screen.dart live/failure Android probe.
 - test/features/tasks/task_crud_flow_test.dart: real AppRouter/screens/TaskCubit/TaskRepository journey with deterministic memory datasource; three creates, description search, combined filters, edit metadata, completion, delete/exact Undo and repeated post-Undo navigation. TasksTab tests24 cases include duplicate Add, deferred busy Undo, rapid keyboard/FAB and six-second expiry.
 - features/tasks/view/task_details_screen.dart: reactive unfiltered ID lookup, Hero/full metadata/description, latest-task edit/focus routes, guarded completion and confirmed delete with exact snapshot; deletion/readback failure Retry and previous-list Undo recovery. task_details_screen_test.dart13 cases.
@@ -158,8 +159,8 @@ full
 
 
 
-- Resident native tty session45118, tool/native_qa.dart, PID18308; SuggestedAPIQA open after recovered first live page. Demo session and seven agent-only tasks retained unchanged by API probe. Actual device/font/light restored. Use --no-dds; lowercase r reload succeeds, uppercase R intermittently loses connection leaving prior app state; cold build/run resets. Task state loads once per identity; logout/replacement invalidates old reads. External ADB action helper excludes EditText so a task title identical to search text selects the card.
-- 00:00IST10Oct checkpoint:23/52 committed,29remaining;2verifiedcommits/30min,details finishing; ETA7–10h/completion07:00–10:00IST. Next checkpoint00:30IST.
+- Resident native tty session49717, tool/native_qa.dart, PID18883; SuggestedCubitQA reopened/live20 and persisted Added true. Demo session and eight agent-only tasks (including suggested-1) retained. Actual device/font/light restored. Use --no-dds; lowercase r reload succeeds, uppercase R intermittently loses connection leaving prior app state; cold build/run resets. Task state loads once per identity; logout/replacement invalidates old reads. External ADB action helper excludes EditText so a task title identical to search text selects the card.
+- 00:30IST10Oct checkpoint:26/52 committed,26remaining;3verifiedcommits/30min,pagination verifying; ETA6–9h/completion06:30–09:30IST. Next checkpoint01:00IST.
 
 
 

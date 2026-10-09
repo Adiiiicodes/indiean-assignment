@@ -10,8 +10,10 @@ import 'package:focusdesk/data/datasources/local/prefs_service.dart';
 import 'package:focusdesk/data/datasources/local/auth_local_datasource.dart';
 import 'package:focusdesk/data/datasources/local/task_local_datasource.dart';
 import 'package:focusdesk/data/datasources/remote/api_client.dart';
+import 'package:focusdesk/data/datasources/remote/suggested_remote_datasource.dart';
 import 'package:focusdesk/data/repositories/auth_repository.dart';
 import 'package:focusdesk/data/repositories/task_repository.dart';
+import 'package:focusdesk/data/repositories/suggested_repository.dart';
 import 'package:focusdesk/shared/widgets/error_view.dart';
 import 'package:focusdesk/shared/widgets/loading_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,14 +25,19 @@ class AppDependencies {
     AuthRepository? auth,
     TaskRepository? tasks,
     Dio? dio,
+    SuggestedRepository? suggested,
   }) : auth = auth ?? AuthRepository(AuthLocalDatasource(prefs)),
        tasks = tasks ?? TaskRepository(TaskLocalDatasource(hive)),
-       dio = ApiClient(dio: dio).dio;
+       dio = ApiClient(dio: dio).dio {
+    this.suggested =
+        suggested ?? SuggestedRepository(SuggestedRemoteDatasource(this.dio));
+  }
   final PrefsService prefs;
   final HiveService hive;
   final AuthRepository auth;
   final TaskRepository tasks;
   final Dio dio;
+  late final SuggestedRepository suggested;
 }
 
 Future<AppDependencies> bootstrap({

@@ -31,6 +31,7 @@ import 'qa/task_model_qa_screen.dart';
 import 'qa/task_repository_qa_screen.dart';
 import 'qa/task_cubit_qa_screen.dart';
 import 'qa/suggested_api_qa_screen.dart';
+import 'qa/suggested_cubit_qa_screen.dart';
 
 Future<void> main() async {
   try {
@@ -63,6 +64,7 @@ class _NativeQaAppState extends State<NativeQaApp> {
               hive: dependencies.hive,
               auth: dependencies.auth,
               dio: dependencies.dio,
+              suggested: dependencies.suggested,
               tasks: _TaskReadProbe(
                 dependencies.hive,
                 failOnce: failTasks,
@@ -227,6 +229,17 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => SuggestedCubitQaScreen(
+                      repository: widget.dependencies.suggested,
+                    ),
+                  ),
+                ),
+                child: const Text('Suggested cubit'),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(

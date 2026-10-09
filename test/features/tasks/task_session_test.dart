@@ -13,6 +13,13 @@ import 'package:focusdesk/data/datasources/local/task_local_datasource.dart';
 import 'package:focusdesk/data/models/task_model.dart';
 import 'package:focusdesk/data/repositories/auth_repository.dart';
 import 'package:focusdesk/data/repositories/task_repository.dart';
+import 'package:focusdesk/data/repositories/suggested_repository.dart';
+import 'package:focusdesk/data/datasources/remote/suggested_remote_datasource.dart';
+import 'package:dio/dio.dart';
+import 'package:focusdesk/data/models/suggested_page_model.dart';
+import 'package:focusdesk/data/models/suggested_task_model.dart';
+import 'package:focusdesk/features/suggested/cubit/suggested_cubit.dart';
+import 'package:focusdesk/features/suggested/cubit/suggested_state.dart';
 import 'package:focusdesk/features/auth/cubit/auth_cubit.dart';
 import 'package:focusdesk/features/auth/view/login_screen.dart';
 import 'package:focusdesk/features/home/view/home_screen.dart';
@@ -33,10 +40,34 @@ class _SessionTasks extends TaskRepository {
   }
 }
 
+class _SessionSuggested extends SuggestedRepository {
+  _SessionSuggested() : super(SuggestedRemoteDatasource(Dio()));
+  int reads = 0;
+
+  @override
+  Future<SuggestedPageModel> fetch({int limit = 20, int skip = 0}) async {
+    reads++;
+    return SuggestedPageModel(
+      todos: const [
+        SuggestedTaskModel(
+          id: 1,
+          todo: 'Session suggestion',
+          completed: false,
+          userId: 1,
+        ),
+      ],
+      total: 1,
+      skip: 0,
+      limit: 1,
+    );
+  }
+}
+
 Future<(AuthCubit, TaskCubit)> _mount(
   WidgetTester tester,
   _SessionTasks tasks, {
   bool savedSession = false,
+  SuggestedRepository? suggested,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = PrefsService(await SharedPreferences.getInstance());
@@ -59,6 +90,7 @@ Future<(AuthCubit, TaskCubit)> _mount(
         hive: HiveService(),
         auth: auth,
         tasks: tasks,
+        suggested: suggested,
       ),
     ),
   );
@@ -82,6 +114,54 @@ Future<void> _login(WidgetTester tester, AuthCubit auth) async {
 }
 
 void main() {
+  testWidgets('suggestions share app scope and reset cache across logout', (
+    tester,
+  ) async {
+    final repository = _SessionSuggested();
+    final (auth, _) = await _mount(
+      tester,
+      _SessionTasks(),
+      suggested: repository,
+    );
+    await _login(tester, auth);
+    final suggestions = tester
+        .element(find.byType(HomeScreen))
+        .read<SuggestedCubit>();
+    expect(repository.reads, 0);
+    await suggestions.load();
+    await tester.pumpAndSettle();
+    expect(suggestions.state.items.single.todo, 'Session suggestion');
+    final refresh = auth.refreshUser();
+    await tester.pump();
+    await refresh;
+    await tester.pumpAndSettle();
+    expect(suggestions.state.items, hasLength(1));
+    final logout = auth.logout();
+    await tester.pump();
+    await logout;
+    await tester.pumpAndSettle();
+    expect(
+      tester.element(find.byType(LoginScreen)).read<SuggestedCubit>(),
+      same(suggestions),
+    );
+    expect(suggestions.state.status, SuggestedStatus.initial);
+    expect(suggestions.state.items, isEmpty);
+    expect(suggestions.state.importedIds, isEmpty);
+    await _login(tester, auth);
+    expect(
+      tester.element(find.byType(HomeScreen)).read<SuggestedCubit>(),
+      same(suggestions),
+    );
+    expect(repository.reads, 1);
+    await suggestions.load();
+    await tester.pumpAndSettle();
+    expect(repository.reads, 2);
+    expect(suggestions.state.items, hasLength(1));
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    expect(suggestions.isClosed, isTrue);
+    expect(tester.takeException(), isNull);
+  });
   testWidgets('saved-session startup loads shared tasks once', (tester) async {
     final repository = _SessionTasks();
     final (_, tasks) = await _mount(tester, repository, savedSession: true);
