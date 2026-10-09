@@ -39,6 +39,7 @@ import 'qa/music_states_qa_screen.dart';
 import 'qa/video_states_qa_screen.dart';
 import 'qa/theme_settings_qa_screen.dart';
 import 'qa/focus_repository_qa_screen.dart';
+import 'qa/timer_qa_screen.dart';
 
 import 'package:focusdesk/data/repositories/focus_repository.dart';
 
@@ -275,6 +276,15 @@ class _NativeQaScreenState extends State<NativeQaScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const TimerQaScreen(),
+                  ),
+                ),
+                child: const Text('QA Focus timer'),
+              ),
+              const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(

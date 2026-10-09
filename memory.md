@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T41
+NEXT_TASK: T42
 
 ## BUILD_CAPABILITY
 full
@@ -62,7 +62,7 @@ full
 - [x] T38 - ThemeCubit and settings persistence
 - [x] T39 - Profile / Settings screen
 - [x] T40 - Focus session model, datasource, repository
-- [ ] T41 - TimerCubit
+- [x] T41 - TimerCubit
 - [ ] T42 - Focus Session screen UI
 - [ ] T43 - Stats card on Home and Profile
 - [ ] T44 - Responsive and accessibility audit
@@ -75,6 +75,7 @@ full
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- TimerCubit/TimerState: injectable periodic ticker/clock/duration converter,25/15/45 configuration, real elapsed/fractional segment accounting, pause/resume/reset/finish, completed/partial session logging with pending retry-safe UUID and success revision.22 unit/bloc +4 realHive timer tests. TimerQaScreen owns real clock/Cubit for production durations and isolated3second completion probe, readback/coldrestore/cleanup.
 - FocusSessionModel/FocusStats immutable JSON/Equatable; FocusLocalDatasource validates JSON and keyed identity in focus_sessions. FocusRepository queues retry-safe ID saves/clear and consistent reads; local-day grouping, summed-second flooring, done task updated-day count and unique positive-session streak. AppDependencies/app global FocusRepository; Profile clears through its queue.31 model/Hive tests +4 real DI/Profile tests; native FocusRepositoryQaScreen verifies save/read/cold restore/clear.
 - ProfileRepository + ProfileCubit coordinate name edits, account-safe task/session clearing, and stop-before-logout. ProfileScreen/NameDialog provide avatar, validated edits, shared theme/duration selectors, About and confirmed actions. App-scoped lazy Profile provider refreshes Task/Suggested caches. AudioLifecycleBinding.stopIfCreated avoids unused decoder creation; stopForLogout propagates errors before ending auth. Tests:7 repository,18 Cubit,8 Profile journeys,2 lazy/existing audio stop cases; old router/Home/journey providers updated.
 - features/profile/cubit/theme_{cubit,state}.dart and settings_{cubit,state}.dart: synchronous stored mode/duration loaders, serialized persisted updates, friendly failure retaining prior choice. PrefsService typed integer API. AppDependencies captures initial theme/duration before runApp; app-owned providers drive MaterialApp themeMode. Tests36 Cubit +4 root first-frame/system/live-restoration; bootstrap and integer storage integration augmented. Native theme_settings_qa_screen real selectors.
@@ -136,6 +137,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T41 accumulates fractional active durations across pause/resume, uses elapsed clock rather than tick count, clamps delayed overshoot and freezes backwards-clock highwater. Natural completion always saves; early finish saves only actualSeconds>10. finishEarly true means accepted finish, not necessarily a persisted short partial; lastSession+revision signals accepted save. Reset discards current elapsed time without logging. Failed save retains exact frozen UUID; new start/reset/config blocked until Retry accepted. close cancels ticker/closes emissions immediately and waits an existing save, without inventing partials. T42 completion dialog must await lastSession.completed and successful revision; shared music needs race-safe cancellation of delayed init/autoplay. QA3sec conversion is isolated from production default minutes*60.
 - T40 attributes a session to its local startedAt day, including sessions crossing midnight; partials count toward sessions and minutes. Sum actual seconds before flooring minutes. Streak uses unique dates with positive actual seconds, anchored today or yesterday, calendar predecessors across DST. TaskModel has no completedAt, so tasksCompletedToday uses currently done tasks updatedAt day; document this approximation. Identical session-ID retries are idempotent, differing duplicate IDs fail friendly storage errors. Reads await previous saves; production Profile clear uses shared FocusRepository queue to prevent pending save resurrection.
 - T39 uses FilledButton inside AlertDialog actions because AppButton LayoutBuilder cannot supply intrinsic dimensions. Profile feedback is scoped to its active tab/current route. Clear task/session data preserves account, session and device settings; partial clear still refreshes visible tasks. Logout stops/reset existing audio before auth, preserving login if decoder stop fails. Native startup is serialized after full tests: initial cold-start PID31587 hit an Android ANR under concurrent host load; quiet starts31829/32530 completed all flows with no newer ANR or checked runtime exceptions. T46/T47 must verify release startup.
 - T38 updates visible selections only after preference write succeeds; queued writes retain order, errors never reveal details, invalid requested minutes do not write. Missing/unknown values use System/25 without rewriting; wrong stored types retain PrefsService friendly StorageException/bootstrap Retry behavior. Theme applies to first Flutter Splash frame; native Android launch background remains system-configured until T45 splash polish. Defaults and theme are device settings, retained across auth changes. New AppDependencies captures startup preferences; QA production handoff constructs a fresh snapshot after native setting changes.
@@ -197,7 +199,7 @@ full
 
 
 
-- Production APK PID2517, Tasks empty/Focus Tester, System/default25; focus sessions0 after native probe cleanup. No resident Flutter tty. Final167-file format/analyze/638tests and production debug51.3s passed. Device720x1280/font1.0/OSlight/userrotationfree0/ignoreOrientationRequestfalse. Actual tab labels include newline Tab n of m.
+- Production APK PID3636, Tasks empty/Focus Tester, System/default25; focus sessions0 after timer probe cleanup. No resident Flutter tty. Final172-file format/analyze/664tests and production debug25.9s passed. Device720x1280/font1.0/OSlight/userrotationfree0/ignoreOrientationRequestfalse. Actual tab labels include newline Tab n of m.
 - 03:30IST10Oct checkpoint:40/52 committed,12remaining;2verifiedcommits/30min. T40native repository flows/638tests passed, finalproduction startup pending. ETA3–5h/completion06:30–08:30IST; next checkpoint04:00IST.
 
 
