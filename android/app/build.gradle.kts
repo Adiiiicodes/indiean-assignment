@@ -15,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // Stable package identity for the FocusDesk assignment.
         applicationId = "com.focusdesk.focusdesk"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -31,8 +31,8 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Installable assignment build; uses the local Android debug key.
+            // Store distribution requires a separately managed release keystore.
             signingConfig = signingConfigs.getByName("debug")
         }
     }

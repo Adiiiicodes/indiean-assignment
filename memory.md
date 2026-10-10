@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T47
+NEXT_TASK: T48
 
 ## BUILD_CAPABILITY
 full
@@ -68,13 +68,14 @@ full
 - [x] T44 - Responsive and accessibility audit
 - [x] T45 - Motion polish, app icon and native splash
 - [x] T46 - Full app smoke test
-- [ ] T47 - Release APK build and verification
+- [x] T47 - Release APK build and verification
 - [ ] T48 - OPTIONAL stretch: background audio and media notification
 - [ ] T49 - README.md
 - [ ] T50 - EXPLAINER.md (interview preparation)
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- T47: release/focusdesk-release.apk is the verified production release (62,217,333 bytes/59.34 MiB), SHA256 68340EA68C39FD4AD7A607D2E19C32B2FC7C8E6C9D94CADE4B161D192776B4B5. Manifest FocusDesk/com.focusdesk.focusdesk/1.0.0+1, min24/target36, INTERNET, three ABIs, non-debuggable, valid v2 Android Debug signature. Removed unused SDK integration_test and six no-longer-needed dependencies; Android signing comments explain assignment vs store keys.
 - T46: app_smoke_test.dart boots the real app/router with storage, decoder, HTTP and clock fakes; completed session/task/stats, shared audio, settings, logout/cache and exact disposal assertions. Optional instance-local FocusTimerFactory flows through FocusDeskApp/AppRouter; production null remains normal durations. Two Dark Login regressions verify root/layer/platform styles. MainActivity uses compatibility API with first-frame ownership latch; AppTheme enables Android three-button contrast protection.
 - T45: StateMotion excludes outgoing input/semantics/Hero, bounded task panels switch while populated slivers keep identity; MotionEntry adds finite220ms fade/6px entrance inside keyed Dismissible. Compact EmptyView tinted decorative circle. Router/Card/Details/fullscreen honor reduced motion. Pillow tool/generate_app_icon.py creates five branding PNGs and optional --fix-splash-themes postprocess; launcher/splash day/night/density resources configured. MainActivity applies OS bar appearance once during native-to-Flutter handoff; Flutter owns later styling. Five motion regressions and one reduced-route test.
 - T44: responsive_test.dart exercises ten populated screens across five sizes and two text scales (100 cases), with scroll and full demo-label glyph containment assertions. Accessibility tests inspect actual Login/Music/Details semantics and tap guidelines. Login demo action is a wrapping full-width OutlinedButton, preserving autofill and busy guards.
@@ -176,7 +177,7 @@ full
 - Auth architecture: bootstrap seeds AuthRepository; one app-level AuthCubit remains across named routes. Splash owns session lookup; current-screen Login/Signup/Home listeners perform stack-clearing auth navigation. Home placeholder has a real Logout action for T15, retained when replacing shell until Profile provides final controls. Tests inject repository delay zero; production600ms stays. Native cold-reopen verifies actual prefs, not mock storage.
 - Mock passwords stored only as SHA-256 through crypto3.0.7; this is assignment demo authentication, not production security. Email normalized; input password kept exact; corrupt accounts fail without overwriting. Default auth delay600ms, injectable zero in tests.
 - Use current Flutter ThemeData APIs (CardThemeData, InputDecorationThemeData, AppBarThemeData). Native QA root switches through normal widget state; avoid calling runApp again from gesture callbacks. System-bar contrast is explicitly coordinated with the scheme.
-- Added SDK integration_test dev dependency for real Android flows. tool/native_qa.dart is a development-only entrypoint for touching real components before production screens exist; production lib/main.dart never imports it. Foundation probes and ordinary app checks are recorded separately.
+- T01 added the SDK integration_test dependency, but no test ever imported it: actual Android checks use ADB and tool/native_qa.dart. T47 removed the unused SDK dependency after release Java compilation referenced its absent release plugin. Concurrent Flutter test/build generation may have contributed; serialize Flutter commands as well as native checks. tool/native_qa.dart remains development-only; production lib/main.dart never imports it. Foundation probes and ordinary app checks are recorded separately.
 - Gradle uses the already-cached 9.3.1 bin distribution; heap 3GB/workers4 fit the host with its emulator. NDK27.1.12297006 passed the scaffold build; T03 added JNI native compilation through path_provider, so app now uses default NDK28.2.13676358.
 - User instructions take precedence over prompt fallbacks: every completed feature must pass automated verification and an actual running-app user flow before committing and advancing. No unverified feature counts as complete.
 - Git author is local-only: Adiiiicodes <nalawadeaditya017@gmail.com>. Plain prompt-specified commit subjects, no co-author or AI attribution trailers.
@@ -192,6 +193,7 @@ full
 - Debug emulator ANRs occurred03:08underconcurrent startup/testing and04:45:36duringconcurrent resize/keyboard/fullsuite. Quiet retries passed without newer ANRs. Serialize all native checks with builds/tests; verify release independently. No checked Dart exceptions/overflow/fatal on quiet final runs.
 
 ## Human To-Do (things the human must do after the build)
+- Review build is signed with the local Android debug key. Configure a separately managed release keystore before store distribution; no keystore credentials are committed.
 
 ## Useful Commands
 - Session started: 2026-10-09 19:30:49 IST
@@ -233,3 +235,6 @@ full
 
 
 - 05:00IST10Oct checkpoint:46/52committed,6remaining;2verifiedcommits/30min. T46 complete smoke/router focused tests passed; fullsuite/debug then serialized Android journey in progress. ETA1.5–2.5h/completion06:30–07:30IST; nextcheckpoint05:30IST.
+
+- 05:30IST10Oct checkpoint:47/52committed,5remaining;1verifiedcommit/30min, slowed by T46 whole-app native journey and three-button contrast fix. T46 final804tests66s/native gates passed and5720dc4 committed. T47 clean/pubget/releasebuild plus804tests in progress; native release verification waits alljobs. ETA1–2h/completion06:30–07:30IST; nextcheckpoint06:00IST.
+- T47 final release installed PID3602; emulator was restarted without wiping existing data. Four tasks (three pending/one done), two partial sessions, stats2/0/1/1; System25/normal device. Release native API, decoder, fullscreen, auth/theme/cold data restoration passed; no ANR since boot and runtime filters clean. Full804tests85s/analyze0 and release154.2s passed after unused SDK integration_test removal. Serialize all Flutter commands as well as native QA.
