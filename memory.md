@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T48
+NEXT_TASK: T49
 
 ## BUILD_CAPABILITY
 full
@@ -69,7 +69,7 @@ full
 - [x] T45 - Motion polish, app icon and native splash
 - [x] T46 - Full app smoke test
 - [x] T47 - Release APK build and verification
-- [ ] T48 - OPTIONAL stretch: background audio and media notification
+- [x] T48 - OPTIONAL stretch: SKIPPED background audio and media notification
 - [ ] T49 - README.md
 - [ ] T50 - EXPLAINER.md (interview preparation)
 - [ ] T51 - Final QA, cleanup and final report
@@ -143,6 +143,7 @@ full
 - .gitignore: generated Flutter exclusions, with release APK deliverables allowed.
 
 ## Decisions
+- T48 OPTIONAL background playback/media notification is SKIPPED by scope choice, with no implementation attempt and no changes to revert. Preserve T33's verified foreground-only pause-on-background behavior and the green T47 release; prioritize handoff docs and final QA. just_audio_background is not installed, no notification/lock-screen/background playback is claimed. Existing transitive WAKE_LOCK permission alone does not enable this feature.
 - T46: actual Android dark Login exposed navigation glyph contrast1.99 despite correct Flutter layer/platform messages and Android appearance0. Startup guard/compat alone did not solve it; enabling Android three-button contrast protection gives OS-day dark Login5.95 with protective scrim, and OS-night dark Login readable light glyphs. Native launch day/night remains correct. Root/layer/channel tests use public tester.layers. Natural fake3second completion retains planned25 and verifies Yes/Done persistence; production native25minute journey logs an accepted partial>10seconds then manual Markdone. Keep those evidence claims distinct. Tool refresh interrupted one fullsuite at600; confirmed no surviving process and reran final804/66s successfully.
 - T45 native launch follows OS day/night; Flutter first frame still follows persisted app theme. Regenerate with Python icon script, dart run flutter_launcher_icons, dart run flutter_native_splash:create, then Python --fix-splash-themes. XML bar contrast requires drawSystemBarBackgrounds; embedding resets navigation appearance during handoff, so one posted MainActivity callback restores OS contrast before Flutter style updates (no persistent observer). Actual launcher coldstarts verify both modes. All native QA now runs after build/fulltests finish: debug emulator keyboard input during concurrent fullsuite+resize hit ANR04:45:36/PID10636; quiet fresh runs11497/11615/12140/12286 passed, same last-ANR timestamp. Host contention is an inference; release startup/journey must still be proven T47.
 - T44 actual small-screen large-text audit found horizontal demo-chip text clipping without a RenderFlex exception; replaced it with a wrapping full-width button and added glyph-bound checks. All existing icon-only controls already supply tooltips; three actual-screen semantics/tap-target regressions preserve them. Native remote load initially failed transiently, actual Retry recovered06:12/play-pause02; no network reliability claim is inferred from fake tests.
