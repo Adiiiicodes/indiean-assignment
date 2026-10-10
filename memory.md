@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T50
+NEXT_TASK: T51
 
 ## BUILD_CAPABILITY
 full
@@ -71,10 +71,11 @@ full
 - [x] T47 - Release APK build and verification
 - [x] T48 - OPTIONAL stretch: SKIPPED background audio and media notification
 - [x] T49 - README.md
-- [ ] T50 - EXPLAINER.md (interview preparation)
+- [x] T50 - EXPLAINER.md (interview preparation)
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- T50: EXPLAINER.md contains the pitch, source-linked architecture, exact Add/readback-retry trace, API/audio/video/storage/testing explanations, 30 interview Q&As, all direct-package glossary entries, honest limitations and an actual three-minute demo. All71 unique local links resolve; audio diagram shows direct Cubit/service ownership.
 - T49: README.md covers grouped features, direct-package rationale, actual architecture/DI/Cubits, API/media/storage/errors, verified environment/setup/build/branding, test/native evidence, requirements and limitations. docs/screenshots/ contains nine unchanged verified release PNGs plus native source/capture notes; all25 README links resolve.
 - T47: release/focusdesk-release.apk is the verified production release (62,217,333 bytes/59.34 MiB), SHA256 68340EA68C39FD4AD7A607D2E19C32B2FC7C8E6C9D94CADE4B161D192776B4B5. Manifest FocusDesk/com.focusdesk.focusdesk/1.0.0+1, min24/target36, INTERNET, three ABIs, non-debuggable, valid v2 Android Debug signature. Removed unused SDK integration_test and six no-longer-needed dependencies; Android signing comments explain assignment vs store keys.
 - T46: app_smoke_test.dart boots the real app/router with storage, decoder, HTTP and clock fakes; completed session/task/stats, shared audio, settings, logout/cache and exact disposal assertions. Optional instance-local FocusTimerFactory flows through FocusDeskApp/AppRouter; production null remains normal durations. Two Dark Login regressions verify root/layer/platform styles. MainActivity uses compatibility API with first-frame ownership latch; AppTheme enables Android three-button contrast protection.
