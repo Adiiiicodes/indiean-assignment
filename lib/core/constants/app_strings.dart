@@ -175,7 +175,6 @@ abstract final class AppStrings {
   static const logoutTitle = 'Log out of FocusDesk?';
   static const logoutMessage =
       'Your saved data stays on this device. Music will stop.';
-  static const statsPlaceholder = 'Your focus summary will appear here.';
   static const packagesUsed =
       'Flutter · flutter_bloc · Dio · Hive · shared_preferences · just_audio · video_player · Chewie';
   static const mockAuthNote =

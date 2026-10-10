@@ -115,11 +115,14 @@ UI / feature view -> Cubit + Equatable state
                               |
                          Repository
                               |
-                 +------------+---------------------+
-                 |            |                     |
-          Local datasource  Remote datasource  Audio service
-                 |            |                     |
-         Hive / preferences  Dio -> DummyJSON     just_audio
+                 +------------+
+                 |            |
+          Local datasource  Remote datasource
+                 |            |
+         Hive / preferences  Dio -> DummyJSON
+
+AudioCubit -> AudioRepository (catalog)
+           +-> AudioPlayerService -> just_audio
 
 State updates -> BlocBuilder / BlocConsumer -> UI
 Static audio/video catalogs supply immutable model lists.
@@ -293,10 +296,10 @@ Copy-Item -LiteralPath build/app/outputs/flutter-apk/app-release.apk -Destinatio
 | --- | --- |
 | App / package | FocusDesk / `com.focusdesk.focusdesk` |
 | Version | `1.0.0+1` |
-| Size | **62,217,333 bytes / 59.34 MiB** |
+| Size | **62,217,147 bytes / 59.34 MiB** |
 | ABIs | `arm64-v8a`, `armeabi-v7a`, `x86_64` in one APK |
 | Build/signing | Release, **non-debuggable**, **Android Debug certificate** |
-| SHA-256 | `68340EA68C39FD4AD7A607D2E19C32B2FC7C8E6C9D94CADE4B161D192776B4B5` |
+| SHA-256 | `756CA9580363F8D2341B27A1A682286B695A7F06B6A56FBC5C21522101700F92` |
 
 [android/app/build.gradle.kts](android/app/build.gradle.kts) explicitly uses local debug signing for the installable assignment artifact. It is **not store-ready signing**. Store distribution needs a separately managed release keystore/configuration; another machine may generate a different debug certificate.
 
@@ -326,7 +329,7 @@ flutter test test/accessibility_test.dart
 
 Widget fakes do not prove native decoding, disk behavior, APK signing, or system-bar/orientation behavior. Separate Android QA verified release installation/cold restart, live import, remote media/fullscreen position retention, theme/logout, and pause-on-background. Native production timer checks used normal-duration start/pause/resume/accepted partials; they did not wait 25 minutes for natural completion.
 
-`tool/native_qa.dart` is a development-only probe entry. Normal runs/releases use `lib/main.dart`, without the probe launcher/accelerated timers. [logs.md](logs.md) records task verification. Technical walkthrough and final QA report are delivered separately.
+`tool/native_qa.dart` is a development-only probe entry. Normal runs/releases use `lib/main.dart`, without the probe launcher/accelerated timers. [logs.md](logs.md) records task verification. Read [EXPLAINER.md](EXPLAINER.md) for the technical walkthrough and [FINAL_REPORT.md](FINAL_REPORT.md) for final QA and handoff.
 
 ## Assignment requirements checklist
 
