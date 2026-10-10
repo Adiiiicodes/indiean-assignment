@@ -1,7 +1,7 @@
 # FocusDesk - Memory (living state)
 
 ## NEXT_TASK
-NEXT_TASK: T49
+NEXT_TASK: T50
 
 ## BUILD_CAPABILITY
 full
@@ -70,11 +70,12 @@ full
 - [x] T46 - Full app smoke test
 - [x] T47 - Release APK build and verification
 - [x] T48 - OPTIONAL stretch: SKIPPED background audio and media notification
-- [ ] T49 - README.md
+- [x] T49 - README.md
 - [ ] T50 - EXPLAINER.md (interview preparation)
 - [ ] T51 - Final QA, cleanup and final report
 
 ## File Map
+- T49: README.md covers grouped features, direct-package rationale, actual architecture/DI/Cubits, API/media/storage/errors, verified environment/setup/build/branding, test/native evidence, requirements and limitations. docs/screenshots/ contains nine unchanged verified release PNGs plus native source/capture notes; all25 README links resolve.
 - T47: release/focusdesk-release.apk is the verified production release (62,217,333 bytes/59.34 MiB), SHA256 68340EA68C39FD4AD7A607D2E19C32B2FC7C8E6C9D94CADE4B161D192776B4B5. Manifest FocusDesk/com.focusdesk.focusdesk/1.0.0+1, min24/target36, INTERNET, three ABIs, non-debuggable, valid v2 Android Debug signature. Removed unused SDK integration_test and six no-longer-needed dependencies; Android signing comments explain assignment vs store keys.
 - T46: app_smoke_test.dart boots the real app/router with storage, decoder, HTTP and clock fakes; completed session/task/stats, shared audio, settings, logout/cache and exact disposal assertions. Optional instance-local FocusTimerFactory flows through FocusDeskApp/AppRouter; production null remains normal durations. Two Dark Login regressions verify root/layer/platform styles. MainActivity uses compatibility API with first-frame ownership latch; AppTheme enables Android three-button contrast protection.
 - T45: StateMotion excludes outgoing input/semantics/Hero, bounded task panels switch while populated slivers keep identity; MotionEntry adds finite220ms fade/6px entrance inside keyed Dismissible. Compact EmptyView tinted decorative circle. Router/Card/Details/fullscreen honor reduced motion. Pillow tool/generate_app_icon.py creates five branding PNGs and optional --fix-splash-themes postprocess; launcher/splash day/night/density resources configured. MainActivity applies OS bar appearance once during native-to-Flutter handoff; Flutter owns later styling. Five motion regressions and one reduced-route test.
@@ -239,3 +240,4 @@ full
 
 - 05:30IST10Oct checkpoint:47/52committed,5remaining;1verifiedcommit/30min, slowed by T46 whole-app native journey and three-button contrast fix. T46 final804tests66s/native gates passed and5720dc4 committed. T47 clean/pubget/releasebuild plus804tests in progress; native release verification waits alljobs. ETA1–2h/completion06:30–07:30IST; nextcheckpoint06:00IST.
 - T47 final release installed PID3602; emulator was restarted without wiping existing data. Four tasks (three pending/one done), two partial sessions, stats2/0/1/1; System25/normal device. Release native API, decoder, fullscreen, auth/theme/cold data restoration passed; no ANR since boot and runtime filters clean. Full804tests85s/analyze0 and release154.2s passed after unused SDK integration_test removal. Serialize all Flutter commands as well as native QA.
+- 06:00IST10Oct checkpoint:49/52handled (48done,1optionalbackgroundskip),3remaining;2taskcommits/30min including required release7a587e6 and optional-scope33763d0. T49 README and native screenshots in progress. ETA30–60minutes/completion06:30–07:00IST; nextcheckpoint06:30IST.
